@@ -167,19 +167,16 @@
         <!-- Daily Fact Card -->
         <div class="card">
             <h2>Today's Miracle</h2>
-            <p id="daily-fact">The human body regenerates approximately 300 billion cells each minute. That means since you opened this app, your body has created <span id="cell-count">0</span> new cells!</p>
-        </div>
-
-        <!-- Details Card -->
-        <div class="card">
-            <h2>The Miracle Beyond</h2>
-            <p id="fact-details">Your body contains about 37.2 trillion cells. Different types of cells regenerate at different rates: intestinal cells are replaced every 2-3 days, while brain cells can last a lifetime.</p>
+            <div id="miracle-content">
+                <p id="daily-fact" style="font-size: 1.1rem; line-height: 1.6;">Your body is creating 300 billion new cells right now! Since you opened this page, your body has created <span id="cell-count">0</span> new cells!</p>
+                <p id="fact-details" style="margin-top: 15px; font-style: italic; font-size: 1.1rem; line-height: 1.6;">In the time it took you to read this, your body created over 2 billion new cells. This miraculous process happens every single minute of every day, even while you sleep. Each cell is intricately designed with complex DNA instructions, like a tiny computer programmed by God. Just imagine - you're literally being renewed moment by moment by the Creator's perfect design!</p>
+            </div>
         </div>
 
         <!-- Bible Verse Card -->
         <div class="card">
             <h2>The Divine Connection</h2>
-            <p id="bible-verse">"I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well." - Psalm 139:14</p>
+            <p id="bible-verse" style="font-style: italic; font-size: 1.1rem; line-height: 1.6; text-transform: none;">Psalm 139:14 - I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well.</p>
         </div>
 
         <!-- Discussion Card -->
@@ -201,10 +198,10 @@
             <span>Home</span>
         </a>
         <a href="discussion.html" class="nav-item">
-            <span>Join the Conversation <span class="count-badge">5</span></span>
+            <span>Join the Conversation <span class="count-badge" id="discussion-count">5</span></span>
         </a>
         <a href="prayers.html" class="nav-item">
-            <span>Prayers <span class="count-badge">3</span></span>
+            <span>Prayers <span class="count-badge" id="prayer-count">3</span></span>
         </a>
     </nav>
 
@@ -224,6 +221,26 @@
 
         // Update the count every 100ms
         setInterval(updateCellCount, 100);
+
+        // Update post counts
+        function updateCounts() {
+            fetch('/api/posts/count?type=discussion')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('discussion-count').textContent = data.count;
+                })
+                .catch(error => console.error('Error:', error));
+
+            fetch('/api/posts/count?type=prayer')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('prayer-count').textContent = data.count;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update counts when page loads
+        document.addEventListener('DOMContentLoaded', updateCounts);
     </script>
 </body>
 </html>

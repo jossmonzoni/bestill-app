@@ -27,7 +27,12 @@ def after_request(response):
     return response
 
 # Sample data
-facts = [{"fact": "The human body regenerates approximately 300 million cells each day.", "details": "Cells in the human body have different lifespans. Red blood cells last about 120 days, while skin cells regenerate every 2-3 weeks.", "verse": "Psalm 139:14 - I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well."}]
+facts = [{
+    "fact": "Your body is creating 300 billion new cells right now!",
+    "details": "In the time it took you to read this, your body created over 2 billion new cells. This miraculous process happens every single minute of every day, even while you sleep. Each cell is intricately designed with complex DNA instructions, like a tiny computer programmed by God. Just imagine - you're literally being renewed moment by moment by the Creator's perfect design!",
+    "verse": "Psalm 139:14 - I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well.",
+    "cellsPerMinute": 300000000000
+}]
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -75,7 +80,7 @@ class PostReply(db.Model):
 
 @app.route('/api/fact', methods=['GET'])
 def get_fact():
-    return jsonify(facts[0])
+    return jsonify(facts)
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -226,15 +231,6 @@ def like_post(post_id):
     except Exception as e:
         logger.error(f"Error in like_post: {str(e)}")
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/posts/<int:post_id>/like/count', methods=['GET'])
-def get_like_count(post_id):
-    try:
-        count = PostLike.query.filter_by(post_id=post_id).count()
-        return jsonify({"count": count})
-    except Exception as e:
-        logger.error(f"Error getting like count: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/posts/<int:post_id>/replies', methods=['GET'])
