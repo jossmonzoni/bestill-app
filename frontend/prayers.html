@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BeStill - Prayer Requests & Praises</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff5e2b;
+            --secondary-color: #FFC0CB;
+            --accent-color: #FFD700;
+            --text-color: #ffffff;
+            --background-color: #000000;
+            --card-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-bottom: 70px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background-color: #000000;
+            box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: #ff5e2b;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .toggle-button {
+            background-color: #333333;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .toggle-button.active {
+            background-color: #ff5e2b;
+            color: #000000;
+        }
+
+        .toggle-button:hover {
+            opacity: 0.9;
+        }
+
+        .post-form {
+            background-color: #333333;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-input {
+            width: 100%;
+            background-color: #000000;
+            border: 1px solid #ff5e2b;
+            border-radius: 8px;
+            padding: 1rem;
+            color: white;
+            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .post-input:focus {
+            border-color: #444444;
+            outline: none;
+        }
+
+        .submit-button {
+            background-color: #ff5e2b;
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        .posts-section {
+            margin-top: 2rem;
+            min-height: 200px;
+        }
+
+        .post {
+            background-color: #333333;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .post:hover {
+            background-color: #444444;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #ff5e2b;
+            font-weight: 600;
+        }
+
+        .post-content {
+            color: white;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            color: #ff5e2b;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            opacity: 0.8;
+        }
+
+        .action-button.liked {
+            color: #ff3366;
+        }
+
+        .replies {
+            margin-left: 2rem;
+            margin-top: 1rem;
+        }
+
+        .reply-form {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .reply-form.active {
+            display: block;
+        }
+
+        .reply-input {
+            width: 100%;
+            background-color: #000000;
+            border: 1px solid #ff5e2b;
+            border-radius: 8px;
+            padding: 1rem;
+            color: white;
+            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .reply {
+            background-color: #444444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #000000;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem;
+            box-shadow: 0 -2px 10px rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .count-badge {
+            background-color: #ff5e2b;
+            color: #000000;
+            border-radius: 12px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+                padding-bottom: 70px;
+            }
+            
+            .button-container {
+                flex-direction: column;
+            }
+            
+            .toggle-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">Prayer Requests & Praises</div>
+    </header>
+
+    <div class="container">
+        <div class="button-container">
+            <button class="toggle-button active" data-type="prayer">Prayer Requests</button>
+            <button class="toggle-button" data-type="praise">Praises</button>
+        </div>
+
+        <div class="post-form">
+            <textarea class="post-input" placeholder="Share your prayer request or praise..."></textarea>
+            <button class="submit-button">Submit</button>
+        </div>
+
+        <div class="posts-section">
+            <!-- Posts will be loaded here -->
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span>Home</span>
+        </a>
+        <a href="discussion.html" class="nav-item">
+            <span>Join the Conversation <span class="count-badge" id="discussion-count">0</span></span>
+        </a>
+        <a href="prayers.html" class="nav-item active">
+            <span>Prayers <span class="count-badge" id="prayers-count">0</span></span>
+        </a>
+    </nav>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+        let currentPostType = 'prayer';
+
+        // Format time ago
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const date = new Date(timestamp);
+            const seconds = Math.floor((now - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval > 1) return interval + ' years ago';
+            if (interval === 1) return '1 year ago';
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval > 1) return interval + ' months ago';
+            if (interval === 1) return '1 month ago';
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval > 1) return interval + ' days ago';
+            if (interval === 1) return '1 day ago';
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval > 1) return interval + ' hours ago';
+            if (interval === 1) return '1 hour ago';
+            
+            interval = Math.floor(seconds / 60);
+            if (interval > 1) return interval + ' minutes ago';
+            if (interval === 1) return '1 minute ago';
+            
+            if (seconds < 10) return 'just now';
+            
+            return Math.floor(seconds) + ' seconds ago';
+        }
+
+        // Update timestamps periodically
+        function updateTimestamps() {
+            document.querySelectorAll('.timestamp').forEach(element => {
+                const timestamp = element.dataset.timestamp;
+                if (timestamp) {
+                    element.textContent = getTimeAgo(timestamp);
+                }
+            });
+        }
+
+        // Toggle between prayer requests and praises
+        document.querySelectorAll('.toggle-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentPostType = button.dataset.type;
+                loadPosts(currentPostType);
+            });
+        });
+
+        // Submit new post
+        document.querySelector('.submit-button').addEventListener('click', async () => {
+            const content = document.querySelector('.post-input').value.trim();
+            if (!content) return;
+
+            try {
+                console.log('Submitting post:', { content, post_type: currentPostType });
+                const response = await fetch(`${API_URL}/api/posts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        post_type: currentPostType,
+                        author: 'Anonymous'
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to submit post');
+                }
+
+                const newPost = await response.json();
+                document.querySelector('.post-input').value = '';
+
+                // Add the new post to the top of the list
+                const postsContainer = document.querySelector('.posts-section');
+                const postElement = createPostElement(newPost);
+                postElement.style.opacity = '0';
+                postElement.style.transform = 'translateY(20px)';
+                
+                if (postsContainer.firstChild) {
+                    postsContainer.insertBefore(postElement, postsContainer.firstChild);
+                } else {
+                    postsContainer.appendChild(postElement);
+                }
+
+                // Fade in the new post
+                setTimeout(() => {
+                    postElement.style.opacity = '1';
+                    postElement.style.transform = 'translateY(0)';
+                }, 50);
+
+            } catch (error) {
+                console.error('Error submitting post:', error);
+                alert(error.message || 'Failed to submit post. Please try again.');
+            }
+        });
+
+        // Load posts
+        async function loadPosts(type = 'prayer') {
+            try {
+                const response = await fetch(`${API_URL}/api/posts?type=${type}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+                const posts = await response.json();
+                const postsContainer = document.querySelector('.posts-section');
+
+                // Fade out current posts
+                const currentPosts = Array.from(postsContainer.children);
+                const fadeOutPromises = currentPosts.map(post => {
+                    return new Promise(resolve => {
+                        post.style.opacity = '0';
+                        post.style.transform = 'translateY(-20px)';
+                        setTimeout(resolve, 300);
+                    });
+                });
+
+                await Promise.all(fadeOutPromises);
+                postsContainer.innerHTML = '';
+
+                // Add all posts
+                posts.forEach((post, index) => {
+                    const postElement = createPostElement(post);
+                    postElement.style.opacity = '0';
+                    postElement.style.transform = 'translateY(20px)';
+                    postsContainer.appendChild(postElement);
+
+                    // Fade in animation
+                    setTimeout(() => {
+                        postElement.style.opacity = '1';
+                        postElement.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+
+                // Load replies for all posts
+                posts.forEach(async (post) => {
+                    try {
+                        const repliesResponse = await fetch(`${API_URL}/api/posts/${post.id}/replies`);
+                        if (repliesResponse.ok) {
+                            const replies = await repliesResponse.json();
+                            const repliesContainer = document.querySelector(`#post-${post.id} .replies`);
+                            if (repliesContainer) {
+                                replies.forEach(reply => {
+                                    repliesContainer.appendChild(createReplyElement(reply));
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error loading replies for post ${post.id}:`, error);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                alert('Failed to load posts. Please try again.');
+            }
+        }
+
+        // Create post element
+        function createPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'post';
+            div.id = `post-${post.id}`;
+            div.innerHTML = `
+                <div class="post-header">
+                    <span>${post.author}</span>
+                    <span class="timestamp" data-timestamp="${post.created_at}">${getTimeAgo(post.created_at)}</span>
+                </div>
+                <div class="post-content">${post.content}</div>
+                <div class="post-footer">
+                    <button class="action-button like-button" data-post-id="${post.id}">
+                        <i class="fas fa-heart"></i> <span class="like-count">0</span> Likes
+                    </button>
+                    <button class="action-button reply-button">
+                        <i class="fas fa-reply"></i> Reply
+                    </button>
+                </div>
+                <div class="replies"></div>
+                <div class="reply-form">
+                    <textarea class="reply-input" placeholder="Write a reply..."></textarea>
+                    <button class="submit-button submit-reply" data-post-id="${post.id}">Reply</button>
+                </div>
+            `;
+            setupPostInteractions(div);
+
+            // Get initial like count
+            fetch(`${API_URL}/api/posts/${post.id}/like/count`)
+                .then(response => response.json())
+                .then(data => {
+                    const likeCount = div.querySelector('.like-count');
+                    if (likeCount) {
+                        likeCount.textContent = data.count;
+                    }
+                })
+                .catch(error => console.error('Error fetching like count:', error));
+
+            return div;
+        }
+
+        // Create reply element
+        function createReplyElement(reply) {
+            const div = document.createElement('div');
+            div.className = 'reply';
+            div.innerHTML = `
+                <div class="reply-header">
+                    <span>${reply.author}</span>
+                    <span class="timestamp" data-timestamp="${reply.created_at}">${getTimeAgo(reply.created_at)}</span>
+                </div>
+                <div class="reply-content">${reply.content}</div>
+            `;
+            return div;
+        }
+
+        // Set up post interactions
+        function setupPostInteractions(postElement) {
+            const replyButton = postElement.querySelector('.reply-button');
+            const replyForm = postElement.querySelector('.reply-form');
+            const submitReply = postElement.querySelector('.submit-reply');
+            const likeButton = postElement.querySelector('.like-button');
+            const likeCount = postElement.querySelector('.like-count');
+
+            replyButton.addEventListener('click', () => {
+                replyForm.classList.toggle('active');
+            });
+
+            submitReply.addEventListener('click', async () => {
+                const content = postElement.querySelector('.reply-input').value.trim();
+                if (!content) return;
+
+                const postId = submitReply.dataset.postId;
+                try {
+                    const response = await fetch(`${API_URL}/api/posts/${postId}/replies`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            content: content,
+                            author: 'Anonymous'
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to submit reply');
+                    }
+
+                    const reply = await response.json();
+                    const repliesContainer = postElement.querySelector('.replies');
+                    repliesContainer.appendChild(createReplyElement(reply));
+                    postElement.querySelector('.reply-input').value = '';
+                    replyForm.classList.remove('active');
+                } catch (error) {
+                    console.error('Error submitting reply:', error);
+                    alert(error.message || 'Failed to submit reply. Please try again.');
+                }
+            });
+
+            likeButton.addEventListener('click', async () => {
+                const postId = likeButton.dataset.postId;
+                try {
+                    const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_id: 'Anonymous'
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to like post');
+                    }
+
+                    const data = await response.json();
+                    likeCount.textContent = data.likes_count;
+                    likeButton.classList.toggle('liked');
+                } catch (error) {
+                    console.error('Error liking post:', error);
+                    alert(error.message || 'Failed to like post. Please try again.');
+                }
+            });
+        }
+
+        // Initial load
+        loadPosts('prayer');
+
+        // Update timestamps every minute
+        setInterval(updateTimestamps, 60000);
+
+        // Update post counts periodically
+        async function updatePostCounts() {
+            try {
+                // Get discussion count
+                const discussionResponse = await fetch(`${API_URL}/api/posts/count?type=discussion`);
+                const discussionData = await discussionResponse.json();
+                document.getElementById('discussion-count').textContent = discussionData.count;
+
+                // Get prayers count
+                const prayersResponse = await fetch(`${API_URL}/api/posts/count?type=prayer`);
+                const prayersData = await prayersResponse.json();
+                document.getElementById('prayers-count').textContent = prayersData.count;
+            } catch (error) {
+                console.error('Error fetching post counts:', error);
+            }
+        }
+
+        // Update counts initially and every minute
+        updatePostCounts();
+        setInterval(updatePostCounts, 60000);
+    </script>
+</body>
+</html>
