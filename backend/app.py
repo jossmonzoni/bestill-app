@@ -57,44 +57,23 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
 
-class Post(db.Model):
+class Prayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    post_type = db.Column(db.String(10), nullable=False)
-    author = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    content = db.Column(db.String(500), nullable=False)
+    author = db.Column(db.String(80), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'content': self.content,
-            'post_type': self.post_type,
-            'author': self.author,
-            'created_at': self.created_at.isoformat()
-        }
-
-class PostLike(db.Model):
+class Praise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    user_id = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    __table_args__ = (db.UniqueConstraint('post_id', 'user_id'),)
+    content = db.Column(db.String(500), nullable=False)
+    author = db.Column(db.String(80), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-class PostReply(db.Model):
+class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'post_id': self.post_id,
-            'content': self.content,
-            'author': self.author,
-            'created_at': self.created_at.isoformat()
-        }
+    content = db.Column(db.String(500), nullable=False)
+    author = db.Column(db.String(80), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 @app.route('/api/fact', methods=['GET'])
 def get_fact():
@@ -297,6 +276,87 @@ def create_reply(post_id):
         logger.error(f"Error in create_reply: {str(e)}")
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/prayers', methods=['GET', 'POST'])
+def handle_prayers():
+    if request.method == 'GET':
+        prayers = Prayer.query.order_by(Prayer.timestamp.desc()).all()
+        return jsonify([{
+            'id': prayer.id,
+            'content': prayer.content,
+            'author': prayer.author,
+            'timestamp': prayer.timestamp.isoformat()
+        } for prayer in prayers])
+    
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_prayer = Prayer(
+            content=data['content'],
+            author=data['author'],
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_prayer)
+        db.session.commit()
+        return jsonify({
+            'id': new_prayer.id,
+            'content': new_prayer.content,
+            'author': new_prayer.author,
+            'timestamp': new_prayer.timestamp.isoformat()
+        }), 201
+
+@app.route('/api/praises', methods=['GET', 'POST'])
+def handle_praises():
+    if request.method == 'GET':
+        praises = Praise.query.order_by(Praise.timestamp.desc()).all()
+        return jsonify([{
+            'id': praise.id,
+            'content': praise.content,
+            'author': praise.author,
+            'timestamp': praise.timestamp.isoformat()
+        } for praise in praises])
+    
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_praise = Praise(
+            content=data['content'],
+            author=data['author'],
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_praise)
+        db.session.commit()
+        return jsonify({
+            'id': new_praise.id,
+            'content': new_praise.content,
+            'author': new_praise.author,
+            'timestamp': new_praise.timestamp.isoformat()
+        }), 201
+
+@app.route('/api/discussions', methods=['GET', 'POST'])
+def handle_discussions():
+    if request.method == 'GET':
+        discussions = Discussion.query.order_by(Discussion.timestamp.desc()).all()
+        return jsonify([{
+            'id': discussion.id,
+            'content': discussion.content,
+            'author': discussion.author,
+            'timestamp': discussion.timestamp.isoformat()
+        } for discussion in discussions])
+    
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_discussion = Discussion(
+            content=data['content'],
+            author=data['author'],
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_discussion)
+        db.session.commit()
+        return jsonify({
+            'id': new_discussion.id,
+            'content': new_discussion.content,
+            'author': new_discussion.author,
+            'timestamp': new_discussion.timestamp.isoformat()
+        }), 201
 
 @app.route('/')
 def index():
