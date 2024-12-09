@@ -11,8 +11,12 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='../frontend')
-# Enable CORS for all domains and methods
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"]}})
+# Enable CORS for the frontend domain
+CORS(app, resources={r"/*": {
+    "origins": ["https://bestill-frontend.onrender.com", "http://localhost:5000"],
+    "methods": ["GET", "POST", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"]
+}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///be_still.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
