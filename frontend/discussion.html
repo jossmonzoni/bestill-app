@@ -113,6 +113,12 @@
             margin-bottom: 1rem;
             resize: vertical;
             min-height: 100px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #ff5e2b;
         }
 
         .submit-button {
@@ -124,6 +130,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
 
         .submit-button:hover {
@@ -303,8 +310,8 @@
 
             <div id="discussions-container"></div>
 
-            <form id="discussion-form" class="comment-form">
-                <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
+            <form class="comment-form">
+                <textarea class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
                 <button type="submit" class="submit-button">Share Thoughts</button>
             </form>
         </div>
@@ -380,9 +387,9 @@
         }
 
         // Handle form submission
-        document.getElementById('discussion-form').addEventListener('submit', async (e) => {
+        document.querySelector('.comment-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const content = document.getElementById('discussion-input').value.trim();
+            const content = document.querySelector('.comment-input').value.trim();
             
             if (!content) return;
             
@@ -399,7 +406,7 @@
                 });
                 
                 if (response.ok) {
-                    document.getElementById('discussion-input').value = '';
+                    document.querySelector('.comment-input').value = '';
                     loadDiscussions();
                 }
             } catch (error) {
