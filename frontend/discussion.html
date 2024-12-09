@@ -303,26 +303,23 @@
 
             <div id="discussions-container"></div>
 
-            <div class="comment-form" id="discussion-form">
+            <form id="discussion-form" class="comment-form">
                 <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
-                <button class="submit-button">Share Thoughts</button>
-            </div>
+                <button type="submit" class="submit-button">Share Thoughts</button>
+            </form>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="index.html">
-            <i class="fas fa-home"></i>
+        <a href="index.html" class="nav-item">
             <span>Home</span>
         </a>
-        <a href="prayers.html">
-            <i class="fas fa-praying-hands"></i>
-            <span>Prayers</span>
+        <a href="discussion.html" class="nav-item active">
+            <span>Join the Conversation <span class="count-badge" id="discussion-count">0</span></span>
         </a>
-        <a href="discussion.html" class="active">
-            <i class="fas fa-comments"></i>
-            <span>Join the Conversation</span>
+        <a href="prayers.html" class="nav-item">
+            <span>Prayers <span class="count-badge" id="prayers-count">0</span></span>
         </a>
     </nav>
 
@@ -361,6 +358,24 @@
                 updateTimestamps();
             } catch (error) {
                 console.error('Error loading discussions:', error);
+            }
+        }
+
+        async function updatePostCounts() {
+            try {
+                // Get discussion count
+                const discussionResponse = await fetch(`${API_URL}/api/discussions`);
+                const discussions = await discussionResponse.json();
+                document.getElementById('discussion-count').textContent = discussions.length;
+
+                // Get prayers count
+                const prayersResponse = await fetch(`${API_URL}/api/prayers`);
+                const prayers = await prayersResponse.json();
+                const praisesResponse = await fetch(`${API_URL}/api/praises`);
+                const praises = await praisesResponse.json();
+                document.getElementById('prayers-count').textContent = prayers.length + praises.length;
+            } catch (error) {
+                console.error('Error fetching post counts:', error);
             }
         }
 
@@ -408,9 +423,12 @@
         // Initial loads
         fetchDailyFact();
         loadDiscussions();
+        updatePostCounts();
 
         // Update timestamps every minute
         setInterval(updateTimestamps, 60000);
+        // Update counts every minute
+        setInterval(updatePostCounts, 60000);
     </script>
 </body>
 </html>

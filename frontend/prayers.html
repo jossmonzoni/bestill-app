@@ -297,14 +297,13 @@
             <button class="toggle-button" data-type="praise">Praises</button>
         </div>
 
-        <div class="post-form">
-            <textarea class="post-input" placeholder="Share your prayer request or praise..."></textarea>
-            <button class="submit-button">Submit</button>
-        </div>
+        <form id="post-form" class="post-form">
+            <textarea id="post-input" class="post-input" placeholder="Share your prayer request or praise..."></textarea>
+            <input type="text" id="author-input" class="post-input" placeholder="Your name">
+            <button type="submit" class="submit-button">Submit</button>
+        </form>
 
-        <div class="posts-section" id="posts-container">
-            <!-- Posts will be loaded here -->
-        </div>
+        <div id="posts-container"></div>
     </div>
 
     <nav class="bottom-nav">
@@ -320,7 +319,7 @@
     </nav>
 
     <script>
-        const API_URL = 'https://bestill-backend.onrender.com';  // Render backend URL
+        const API_URL = 'https://bestill-backend.onrender.com';
         let currentPostType = 'prayer';
 
         // Format time ago
@@ -364,16 +363,6 @@
             });
         }
 
-        // Toggle between prayer requests and praises
-        document.querySelectorAll('.toggle-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                currentPostType = button.dataset.type;
-                loadPosts(currentPostType);
-            });
-        });
-
         // Load posts
         async function loadPosts(type = 'prayer') {
             try {
@@ -395,17 +384,26 @@
             }
         }
 
+        // Toggle between prayer requests and praises
+        document.querySelectorAll('.toggle-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentPostType = button.dataset.type;
+                loadPosts(currentPostType);
+            });
+        });
+
         // Handle form submission
         document.getElementById('post-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const content = document.querySelector('.post-input').value.trim();
-            const author = 'Anonymous';
-            const type = document.querySelector('.toggle-button.active').dataset.type;
+            const content = document.getElementById('post-input').value.trim();
+            const author = document.getElementById('author-input').value.trim() || 'Anonymous';
             
             if (!content) return;
             
             try {
-                const endpoint = type === 'prayer' ? '/api/prayers' : '/api/praises';
+                const endpoint = currentPostType === 'prayer' ? '/api/prayers' : '/api/praises';
                 const response = await fetch(API_URL + endpoint, {
                     method: 'POST',
                     headers: {
@@ -418,8 +416,9 @@
                 });
                 
                 if (response.ok) {
-                    document.querySelector('.post-input').value = '';
-                    loadPosts(type);
+                    document.getElementById('post-input').value = '';
+                    document.getElementById('author-input').value = '';
+                    loadPosts(currentPostType);
                 }
             } catch (error) {
                 console.error('Error creating post:', error);
