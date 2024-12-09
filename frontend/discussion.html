@@ -57,6 +57,27 @@
             margin: 0 auto;
         }
 
+        .miracle-card, .verse-card {
+            background-color: #333333;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .miracle-card h2, .verse-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .miracle-card p, .verse-card p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
         .today-content {
             background-color: #ff5e2b;
             border-radius: 15px;
@@ -78,43 +99,35 @@
             border-radius: 15px;
             padding: 1.5rem;
             margin-bottom: 1rem;
+            box-shadow: var(--card-shadow);
         }
 
         .comment-input {
             width: 100%;
             background-color: #000000;
-            border: 1px solid #ff5e2b;
+            border: 1px solid var(--primary-color);
             border-radius: 8px;
             padding: 1rem;
-            color: white;
+            color: var(--text-color);
+            font-size: 1rem;
             margin-bottom: 1rem;
-            font-family: 'Inter', sans-serif;
             resize: vertical;
             min-height: 100px;
-            transition: all 0.3s ease;
-            font-size: 16px;
-        }
-
-        .comment-input:focus {
-            border-color: #444444;
-            outline: none;
         }
 
         .submit-button {
-            background-color: #ff5e2b;
+            background-color: var(--primary-color);
             color: #000000;
             border: none;
             border-radius: 8px;
             padding: 0.8rem 1.5rem;
             font-weight: 600;
-            text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: opacity 0.3s ease;
         }
 
         .submit-button:hover {
-            background-color: #333333;
-            color: #ffffff;
+            opacity: 0.9;
         }
 
         .comments-section {
@@ -277,35 +290,60 @@
     </header>
 
     <div class="discussion-container">
-        <div class="today-content">
-            <p>THE HUMAN BODY REGENERATES APPROXIMATELY 300 BILLION CELLS EACH MINUTE.</p>
-            <p style="margin-top: 1rem;">"I PRAISE YOU BECAUSE I AM FEARFULLY AND WONDERFULLY MADE; YOUR WORKS ARE WONDERFUL, I KNOW THAT FULL WELL." - PSALM 139:14</p>
-        </div>
+        <div class="container">
+            <div class="miracle-card">
+                <h2>Today's Miracle</h2>
+                <p id="todaysMiracle">Loading today's miracle...</p>
+            </div>
+            
+            <div class="verse-card">
+                <h2>The Divine Connection</h2>
+                <p id="bibleVerse">Loading Bible verse...</p>
+            </div>
 
-        <div id="discussions-container"></div>
+            <div id="discussions-container"></div>
 
-        <div class="comment-form">
-            <input id="author-input" type="text" placeholder="Your Name (optional)">
-            <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
-            <button class="submit-button">Share Thoughts</button>
+            <div class="comment-form" id="discussion-form">
+                <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
+                <button class="submit-button">Share Thoughts</button>
+            </div>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
+        <a href="index.html">
+            <i class="fas fa-home"></i>
             <span>Home</span>
         </a>
-        <a href="discussion.html" class="nav-item active">
-            <span>Join the Conversation <span class="count-badge" id="discussion-count">0</span></span>
+        <a href="prayers.html">
+            <i class="fas fa-praying-hands"></i>
+            <span>Prayers</span>
         </a>
-        <a href="prayers.html" class="nav-item">
-            <span>Prayers <span class="count-badge" id="prayers-count">0</span></span>
+        <a href="discussion.html" class="active">
+            <i class="fas fa-comments"></i>
+            <span>Join the Conversation</span>
         </a>
     </nav>
 
     <script>
-        const API_URL = 'https://bestill-backend.onrender.com';  // Render backend URL
+        const API_URL = 'https://bestill-backend.onrender.com';
+
+        // Fetch and display the daily fact
+        async function fetchDailyFact() {
+            try {
+                const response = await fetch(`${API_URL}/api/fact`);
+                const data = await response.json();
+                
+                // Update Today's Miracle
+                document.getElementById('todaysMiracle').textContent = data.fact;
+                
+                // Update Bible Verse
+                document.getElementById('bibleVerse').textContent = data.verse;
+            } catch (error) {
+                console.error('Error fetching daily fact:', error);
+            }
+        }
 
         async function loadDiscussions() {
             try {
@@ -330,7 +368,6 @@
         document.getElementById('discussion-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const content = document.getElementById('discussion-input').value.trim();
-            const author = document.getElementById('author-input').value.trim() || 'Anonymous';
             
             if (!content) return;
             
@@ -342,13 +379,12 @@
                     },
                     body: JSON.stringify({
                         content,
-                        author
+                        author: 'Anonymous'
                     })
                 });
                 
                 if (response.ok) {
                     document.getElementById('discussion-input').value = '';
-                    document.getElementById('author-input').value = '';
                     loadDiscussions();
                 }
             } catch (error) {
@@ -369,33 +405,12 @@
             return div;
         }
 
-        // Initial load
+        // Initial loads
+        fetchDailyFact();
         loadDiscussions();
 
         // Update timestamps every minute
         setInterval(updateTimestamps, 60000);
-
-        async function updatePostCounts() {
-            try {
-                // Get discussion count
-                const discussionResponse = await fetch(`${API_URL}/api/posts/count?type=discussion`);
-                const discussionData = await discussionResponse.json();
-                document.getElementById('discussion-count').textContent = discussionData.count;
-
-                // Get prayers count
-                const prayersResponse = await fetch(`${API_URL}/api/posts/count?type=prayer`);
-                const prayersData = await prayersResponse.json();
-                document.getElementById('prayers-count').textContent = prayersData.count;
-            } catch (error) {
-                console.error('Error fetching post counts:', error);
-            }
-        }
-
-        // Initial load
-        updatePostCounts();
-
-        // Update counts every minute
-        setInterval(updatePostCounts, 60000);
     </script>
 </body>
 </html>
