@@ -302,7 +302,7 @@
             <button class="submit-button">Submit</button>
         </div>
 
-        <div class="posts-section">
+        <div class="posts-section" id="posts-container">
             <!-- Posts will be loaded here -->
         </div>
     </div>
@@ -374,243 +374,70 @@
             });
         });
 
-        // Submit new post
-        document.querySelector('.submit-button').addEventListener('click', async () => {
-            const content = document.querySelector('.post-input').value.trim();
-            if (!content) return;
-
-            try {
-                console.log('Submitting post:', { content, post_type: currentPostType });
-                const response = await fetch(`${API_URL}/api/posts`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        content: content,
-                        post_type: currentPostType,
-                        author: 'Anonymous'
-                    }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to submit post');
-                }
-
-                const newPost = await response.json();
-                document.querySelector('.post-input').value = '';
-
-                // Add the new post to the top of the list
-                const postsContainer = document.querySelector('.posts-section');
-                const postElement = createPostElement(newPost);
-                postElement.style.opacity = '0';
-                postElement.style.transform = 'translateY(20px)';
-                
-                if (postsContainer.firstChild) {
-                    postsContainer.insertBefore(postElement, postsContainer.firstChild);
-                } else {
-                    postsContainer.appendChild(postElement);
-                }
-
-                // Fade in the new post
-                setTimeout(() => {
-                    postElement.style.opacity = '1';
-                    postElement.style.transform = 'translateY(0)';
-                }, 50);
-
-            } catch (error) {
-                console.error('Error submitting post:', error);
-                alert(error.message || 'Failed to submit post. Please try again.');
-            }
-        });
-
         // Load posts
         async function loadPosts(type = 'prayer') {
             try {
-                const response = await fetch(`${API_URL}/api/posts?type=${type}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch posts');
-                }
+                const endpoint = type === 'prayer' ? '/api/prayers' : '/api/praises';
+                const response = await fetch(API_URL + endpoint);
                 const posts = await response.json();
-                const postsContainer = document.querySelector('.posts-section');
-
-                // Fade out current posts
-                const currentPosts = Array.from(postsContainer.children);
-                const fadeOutPromises = currentPosts.map(post => {
-                    return new Promise(resolve => {
-                        post.style.opacity = '0';
-                        post.style.transform = 'translateY(-20px)';
-                        setTimeout(resolve, 300);
-                    });
-                });
-
-                await Promise.all(fadeOutPromises);
-                postsContainer.innerHTML = '';
-
-                // Add all posts
-                posts.forEach((post, index) => {
+                
+                const container = document.getElementById('posts-container');
+                container.innerHTML = '';
+                
+                posts.forEach(post => {
                     const postElement = createPostElement(post);
-                    postElement.style.opacity = '0';
-                    postElement.style.transform = 'translateY(20px)';
-                    postsContainer.appendChild(postElement);
-
-                    // Fade in animation
-                    setTimeout(() => {
-                        postElement.style.opacity = '1';
-                        postElement.style.transform = 'translateY(0)';
-                    }, index * 100);
+                    container.appendChild(postElement);
                 });
-
-                // Load replies for all posts
-                posts.forEach(async (post) => {
-                    try {
-                        const repliesResponse = await fetch(`${API_URL}/api/posts/${post.id}/replies`);
-                        if (repliesResponse.ok) {
-                            const replies = await repliesResponse.json();
-                            const repliesContainer = document.querySelector(`#post-${post.id} .replies`);
-                            if (repliesContainer) {
-                                replies.forEach(reply => {
-                                    repliesContainer.appendChild(createReplyElement(reply));
-                                });
-                            }
-                        }
-                    } catch (error) {
-                        console.error(`Error loading replies for post ${post.id}:`, error);
-                    }
-                });
+                
+                updateTimestamps();
             } catch (error) {
                 console.error('Error loading posts:', error);
-                alert('Failed to load posts. Please try again.');
             }
         }
+
+        // Handle form submission
+        document.getElementById('post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = document.querySelector('.post-input').value.trim();
+            const author = 'Anonymous';
+            const type = document.querySelector('.toggle-button.active').dataset.type;
+            
+            if (!content) return;
+            
+            try {
+                const endpoint = type === 'prayer' ? '/api/prayers' : '/api/praises';
+                const response = await fetch(API_URL + endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content,
+                        author
+                    })
+                });
+                
+                if (response.ok) {
+                    document.querySelector('.post-input').value = '';
+                    loadPosts(type);
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+            }
+        });
 
         // Create post element
         function createPostElement(post) {
             const div = document.createElement('div');
             div.className = 'post';
-            div.id = `post-${post.id}`;
             div.innerHTML = `
-                <div class="post-header">
-                    <span>${post.author}</span>
-                    <span class="timestamp" data-timestamp="${post.created_at}">${getTimeAgo(post.created_at)}</span>
-                </div>
                 <div class="post-content">${post.content}</div>
-                <div class="post-footer">
-                    <button class="action-button like-button" data-post-id="${post.id}">
-                        <i class="fas fa-heart"></i> <span class="like-count">0</span> Likes
-                    </button>
-                    <button class="action-button reply-button">
-                        <i class="fas fa-reply"></i> Reply
-                    </button>
-                </div>
-                <div class="replies"></div>
-                <div class="reply-form">
-                    <textarea class="reply-input" placeholder="Write a reply..."></textarea>
-                    <button class="submit-button submit-reply" data-post-id="${post.id}">Reply</button>
+                <div class="post-meta">
+                    <span class="post-author">Posted by ${post.author}</span>
+                    <span class="post-time" data-timestamp="${post.timestamp}">${getTimeAgo(post.timestamp)}</span>
                 </div>
             `;
-            setupPostInteractions(div);
-
-            // Get initial like count
-            fetch(`${API_URL}/api/posts/${post.id}/like/count`)
-                .then(response => response.json())
-                .then(data => {
-                    const likeCount = div.querySelector('.like-count');
-                    if (likeCount) {
-                        likeCount.textContent = data.count;
-                    }
-                })
-                .catch(error => console.error('Error fetching like count:', error));
-
             return div;
-        }
-
-        // Create reply element
-        function createReplyElement(reply) {
-            const div = document.createElement('div');
-            div.className = 'reply';
-            div.innerHTML = `
-                <div class="reply-header">
-                    <span>${reply.author}</span>
-                    <span class="timestamp" data-timestamp="${reply.created_at}">${getTimeAgo(reply.created_at)}</span>
-                </div>
-                <div class="reply-content">${reply.content}</div>
-            `;
-            return div;
-        }
-
-        // Set up post interactions
-        function setupPostInteractions(postElement) {
-            const replyButton = postElement.querySelector('.reply-button');
-            const replyForm = postElement.querySelector('.reply-form');
-            const submitReply = postElement.querySelector('.submit-reply');
-            const likeButton = postElement.querySelector('.like-button');
-            const likeCount = postElement.querySelector('.like-count');
-
-            replyButton.addEventListener('click', () => {
-                replyForm.classList.toggle('active');
-            });
-
-            submitReply.addEventListener('click', async () => {
-                const content = postElement.querySelector('.reply-input').value.trim();
-                if (!content) return;
-
-                const postId = submitReply.dataset.postId;
-                try {
-                    const response = await fetch(`${API_URL}/api/posts/${postId}/replies`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            content: content,
-                            author: 'Anonymous'
-                        }),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to submit reply');
-                    }
-
-                    const reply = await response.json();
-                    const repliesContainer = postElement.querySelector('.replies');
-                    repliesContainer.appendChild(createReplyElement(reply));
-                    postElement.querySelector('.reply-input').value = '';
-                    replyForm.classList.remove('active');
-                } catch (error) {
-                    console.error('Error submitting reply:', error);
-                    alert(error.message || 'Failed to submit reply. Please try again.');
-                }
-            });
-
-            likeButton.addEventListener('click', async () => {
-                const postId = likeButton.dataset.postId;
-                try {
-                    const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            user_id: 'Anonymous'
-                        }),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to like post');
-                    }
-
-                    const data = await response.json();
-                    likeCount.textContent = data.likes_count;
-                    likeButton.classList.toggle('liked');
-                } catch (error) {
-                    console.error('Error liking post:', error);
-                    alert(error.message || 'Failed to like post. Please try again.');
-                }
-            });
         }
 
         // Initial load

@@ -282,56 +282,12 @@
             <p style="margin-top: 1rem;">"I PRAISE YOU BECAUSE I AM FEARFULLY AND WONDERFULLY MADE; YOUR WORKS ARE WONDERFUL, I KNOW THAT FULL WELL." - PSALM 139:14</p>
         </div>
 
-        <div class="comment-form">
-            <textarea class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
-            <button class="submit-button">Share Thoughts</button>
-        </div>
+        <div id="discussions-container"></div>
 
-        <div class="comments-section">
-            <div class="comment">
-                <div class="comment-header">
-                    <span>Sarah</span>
-                    <span>2 hours ago</span>
-                </div>
-                <p class="comment-text">It's amazing to think about how intricately God designed our bodies. Every cell has a purpose!</p>
-                <div class="comment-actions">
-                    <button class="action-button like-button">
-                        <i class="fas fa-heart"></i>
-                        <span class="like-count">0</span>
-                    </button>
-                    <button class="action-button reply-toggle">
-                        <i class="fas fa-reply"></i>
-                        Reply
-                    </button>
-                </div>
-                <div class="reply-form">
-                    <textarea class="reply-input" placeholder="Write your reply..."></textarea>
-                    <button class="reply-button">Reply</button>
-                </div>
-                <div class="replies"></div>
-            </div>
-            <div class="comment">
-                <div class="comment-header">
-                    <span>John</span>
-                    <span>5 hours ago</span>
-                </div>
-                <p class="comment-text">This verse reminds me to be thankful for the miracle of life every single day.</p>
-                <div class="comment-actions">
-                    <button class="action-button like-button">
-                        <i class="fas fa-heart"></i>
-                        <span class="like-count">0</span>
-                    </button>
-                    <button class="action-button reply-toggle">
-                        <i class="fas fa-reply"></i>
-                        Reply
-                    </button>
-                </div>
-                <div class="reply-form">
-                    <textarea class="reply-input" placeholder="Write your reply..."></textarea>
-                    <button class="reply-button">Reply</button>
-                </div>
-                <div class="replies"></div>
-            </div>
+        <div class="comment-form">
+            <input id="author-input" type="text" placeholder="Your Name (optional)">
+            <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
+            <button class="submit-button">Share Thoughts</button>
         </div>
     </div>
 
@@ -350,6 +306,74 @@
 
     <script>
         const API_URL = 'https://bestill-backend.onrender.com';  // Render backend URL
+
+        async function loadDiscussions() {
+            try {
+                const response = await fetch(`${API_URL}/api/discussions`);
+                const discussions = await response.json();
+                
+                const container = document.getElementById('discussions-container');
+                container.innerHTML = '';
+                
+                discussions.forEach(discussion => {
+                    const discussionElement = createDiscussionElement(discussion);
+                    container.appendChild(discussionElement);
+                });
+                
+                updateTimestamps();
+            } catch (error) {
+                console.error('Error loading discussions:', error);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('discussion-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = document.getElementById('discussion-input').value.trim();
+            const author = document.getElementById('author-input').value.trim() || 'Anonymous';
+            
+            if (!content) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/discussions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content,
+                        author
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('discussion-input').value = '';
+                    document.getElementById('author-input').value = '';
+                    loadDiscussions();
+                }
+            } catch (error) {
+                console.error('Error creating discussion:', error);
+            }
+        });
+
+        function createDiscussionElement(discussion) {
+            const div = document.createElement('div');
+            div.className = 'discussion';
+            div.innerHTML = `
+                <div class="discussion-content">${discussion.content}</div>
+                <div class="discussion-meta">
+                    <span class="discussion-author">Posted by ${discussion.author}</span>
+                    <span class="discussion-time" data-timestamp="${discussion.timestamp}">${getTimeAgo(discussion.timestamp)}</span>
+                </div>
+            `;
+            return div;
+        }
+
+        // Initial load
+        loadDiscussions();
+
+        // Update timestamps every minute
+        setInterval(updateTimestamps, 60000);
 
         async function updatePostCounts() {
             try {
@@ -372,84 +396,6 @@
 
         // Update counts every minute
         setInterval(updatePostCounts, 60000);
-
-        // Handle new comment submission
-        document.querySelector('.submit-button').addEventListener('click', function() {
-            const commentText = document.querySelector('.comment-input').value;
-            if (commentText.trim() !== '') {
-                const commentsSection = document.querySelector('.comments-section');
-                const newComment = createCommentElement('You', 'Just now', commentText);
-                commentsSection.insertBefore(newComment, commentsSection.firstChild);
-                document.querySelector('.comment-input').value = '';
-            }
-        });
-
-        // Function to create a new comment element
-        function createCommentElement(author, time, text) {
-            const comment = document.createElement('div');
-            comment.className = 'comment';
-            comment.innerHTML = `
-                <div class="comment-header">
-                    <span>${author}</span>
-                    <span>${time}</span>
-                </div>
-                <p class="comment-text">${text}</p>
-                <div class="comment-actions">
-                    <button class="action-button like-button">
-                        <i class="fas fa-heart"></i>
-                        <span class="like-count">0</span>
-                    </button>
-                    <button class="action-button reply-toggle">
-                        <i class="fas fa-reply"></i>
-                        Reply
-                    </button>
-                </div>
-                <div class="reply-form">
-                    <textarea class="reply-input" placeholder="Write your reply..."></textarea>
-                    <button class="reply-button">Reply</button>
-                </div>
-                <div class="replies"></div>
-            `;
-            setupCommentInteractions(comment);
-            return comment;
-        }
-
-        // Set up interactions for all comments
-        function setupCommentInteractions(comment) {
-            const likeButton = comment.querySelector('.like-button');
-            const replyToggle = comment.querySelector('.reply-toggle');
-            const replyForm = comment.querySelector('.reply-form');
-            const replyButton = comment.querySelector('.reply-button');
-            const repliesContainer = comment.querySelector('.replies');
-
-            // Like button functionality
-            likeButton.addEventListener('click', function() {
-                if (!likeButton.classList.contains('liked')) {
-                    likeButton.classList.add('liked');
-                    const likeCount = likeButton.querySelector('.like-count');
-                    likeCount.textContent = parseInt(likeCount.textContent) + 1;
-                }
-            });
-
-            // Reply toggle functionality
-            replyToggle.addEventListener('click', function() {
-                replyForm.classList.toggle('active');
-            });
-
-            // Reply submission
-            replyButton.addEventListener('click', function() {
-                const replyText = replyForm.querySelector('.reply-input').value;
-                if (replyText.trim() !== '') {
-                    const reply = createCommentElement('You', 'Just now', replyText);
-                    repliesContainer.appendChild(reply);
-                    replyForm.querySelector('.reply-input').value = '';
-                    replyForm.classList.remove('active');
-                }
-            });
-        }
-
-        // Set up interactions for existing comments
-        document.querySelectorAll('.comment').forEach(setupCommentInteractions);
     </script>
 </body>
 </html>
