@@ -310,8 +310,8 @@
 
             <div id="discussions-container"></div>
 
-            <form class="comment-form">
-                <textarea class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
+            <form id="discussion-form" class="comment-form">
+                <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
                 <button type="submit" class="submit-button">Share Thoughts</button>
             </form>
         </div>
@@ -387,9 +387,9 @@
         }
 
         // Handle form submission
-        document.querySelector('.comment-form').addEventListener('submit', async (e) => {
+        document.getElementById('discussion-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const content = document.querySelector('.comment-input').value.trim();
+            const content = document.getElementById('discussion-input').value.trim();
             
             if (!content) return;
             
@@ -406,7 +406,7 @@
                 });
                 
                 if (response.ok) {
-                    document.querySelector('.comment-input').value = '';
+                    document.getElementById('discussion-input').value = '';
                     loadDiscussions();
                 }
             } catch (error) {

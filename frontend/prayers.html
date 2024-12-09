@@ -299,7 +299,6 @@
 
         <form id="post-form" class="post-form">
             <textarea id="post-input" class="post-input" placeholder="Share your prayer request or praise..."></textarea>
-            <input type="text" id="author-input" class="post-input" placeholder="Your name">
             <button type="submit" class="submit-button">Submit</button>
         </form>
 
@@ -398,7 +397,6 @@
         document.getElementById('post-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const content = document.getElementById('post-input').value.trim();
-            const author = document.getElementById('author-input').value.trim() || 'Anonymous';
             
             if (!content) return;
             
@@ -411,13 +409,12 @@
                     },
                     body: JSON.stringify({
                         content,
-                        author
+                        author: 'Anonymous'
                     })
                 });
                 
                 if (response.ok) {
                     document.getElementById('post-input').value = '';
-                    document.getElementById('author-input').value = '';
                     loadPosts(currentPostType);
                 }
             } catch (error) {
