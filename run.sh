@@ -2,7 +2,7 @@
 
 # Function to check if port is in use
 check_port() {
-    if lsof -i :8080 > /dev/null ; then
+    if lsof -i :5000 > /dev/null ; then
         return 0
     else
         return 1
@@ -18,8 +18,8 @@ sleep 2
 
 # Check if port is still in use
 if check_port; then
-    echo "Error: Port 8080 is still in use. Please check for other processes using this port."
-    echo "You can use: lsof -i :8080"
+    echo "Error: Port 5000 is still in use. Please check for other processes using this port."
+    echo "You can use: lsof -i :5000"
     exit 1
 fi
 
