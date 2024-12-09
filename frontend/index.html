@@ -166,7 +166,7 @@
 <div class="card-container">
     <!-- Daily Fact Card -->
     <div class="card">
-        <h2>Today's Miracle</h2>
+        <h2 id="todaysMiracle">Today's Miracle</h2>
         <div id="miracle-content">
             <p id="daily-fact" style="font-size: 1.1rem; line-height: 1.6;">In this exact moment, your body is creating 300 billion new cells - that's like building an entire city of microscopic life every single minute. Since you opened this page, your body has created <span id="cell-count">0</span> new cells. A continuous miracle unfolding within you...</p>
         </div>
@@ -174,13 +174,13 @@
 
     <!-- The Miracle Beyond Card -->
     <div class="card">
-        <h2>The Miracle Beyond</h2>
+        <h2 id="miracleBeyond">The Miracle Beyond</h2>
         <p id="fact-details" style="font-size: 1.1rem; line-height: 1.6;">YOU'VE JUST CREATED MORE CELLS THAN THERE ARE STARS IN 1,000 GALAXIES COMBINED. EACH OF THESE CELLS IS A MASTERPIECE, CONTAINING DNA SO COMPLEX IT WOULD TAKE 1,000 BOOKS TO WRITE DOWN THE CODE FOR JUST ONE CELL. THIS EXTRAORDINARY PROCESS CONTINUES EVERY SINGLE MINUTE, WHETHER YOU'RE AWAKE OR DEEP IN SLEEP. YOUR BODY IS RUNNING THE MOST SOPHISTICATED FACTORY IN THE UNIVERSE, AND IT NEVER STOPS. THIS LEVEL OF PRECISION AND COMPLEXITY COULD ONLY COME FROM A DIVINE BLUEPRINT - YOU ARE A LIVING TESTAMENT TO GOD'S INCREDIBLE DESIGN.</p>
     </div>
 
     <!-- Bible Verse Card -->
     <div class="card">
-        <h2>The Divine Connection</h2>
+        <h2 id="bibleVerse">The Divine Connection</h2>
         <p id="bible-verse" style="font-style: italic; font-size: 1.1rem; line-height: 1.6;">PSALM 139:14 - I PRAISE YOU BECAUSE I AM FEARFULLY AND WONDERFULLY MADE; YOUR WORKS ARE WONDERFUL, I KNOW THAT FULL WELL.</p>
     </div>
 
@@ -245,6 +245,29 @@
 
         // Update counts when page loads
         document.addEventListener('DOMContentLoaded', updateCounts);
+
+        const API_URL = 'https://bestill-backend.onrender.com';
+
+        async function fetchDailyFact() {
+            try {
+                const response = await fetch(`${API_URL}/api/fact`);
+                const data = await response.json();
+                
+                // Update Today's Miracle
+                document.getElementById('todaysMiracle').textContent = data.fact;
+                
+                // Update The Miracle Beyond
+                document.getElementById('miracleBeyond').textContent = data.details;
+                
+                // Update Bible Verse
+                document.getElementById('bibleVerse').textContent = data.verse;
+            } catch (error) {
+                console.error('Error fetching daily fact:', error);
+            }
+        }
+
+        // Fetch the daily fact when the page loads
+        document.addEventListener('DOMContentLoaded', fetchDailyFact);
     </script>
 </body>
 </html>

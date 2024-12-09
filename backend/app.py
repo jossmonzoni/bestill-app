@@ -30,13 +30,27 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-# Sample data
-facts = [{
-    "fact": "Your body is creating 300 billion new cells right now!",
-    "details": "In the time it took you to read this, your body created over 2 billion new cells. This miraculous process happens every single minute of every day, even while you sleep. Each cell is intricately designed with complex DNA instructions, like a tiny computer programmed by God. Just imagine - you're literally being renewed moment by moment by the Creator's perfect design!",
-    "verse": "Psalm 139:14 - I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well.",
-    "cellsPerMinute": 300000000000
-}]
+# Sample data - Daily Miracle Facts
+facts = [
+    {
+        "fact": "In this exact moment, your body is creating 300 billion new cells - that's like building an entire city of microscopic life every single minute.",
+        "details": "YOU'VE JUST CREATED MORE CELLS THAN THERE ARE STARS IN 1,000 GALAXIES COMBINED. EACH OF THESE CELLS IS A MASTERPIECE, CONTAINING DNA SO COMPLEX IT WOULD TAKE 1,000 BOOKS TO WRITE DOWN THE CODE FOR JUST ONE CELL. THIS EXTRAORDINARY PROCESS CONTINUES EVERY SINGLE MINUTE, WHETHER YOU'RE AWAKE OR DEEP IN SLEEP. YOUR BODY IS RUNNING THE MOST SOPHISTICATED FACTORY IN THE UNIVERSE, AND IT NEVER STOPS. THIS LEVEL OF PRECISION AND COMPLEXITY COULD ONLY COME FROM A DIVINE BLUEPRINT - YOU ARE A LIVING TESTAMENT TO GOD'S INCREDIBLE DESIGN.",
+        "verse": "Psalm 139:14 - I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well.",
+        "cellsPerMinute": 300000000000
+    },
+    {
+        "fact": "Your brain processes information at an astounding speed of 268 mph - faster than the world's fastest race car!",
+        "details": "IN A SINGLE SECOND, YOUR BRAIN COMPLETES OVER 100,000 CHEMICAL REACTIONS. THIS INCREDIBLE NEURAL NETWORK CONTAINS 86 BILLION NEURONS, EACH ONE CONNECTED TO 10,000 OTHERS, CREATING A VAST UNIVERSE OF THOUGHTS AND MEMORIES. EVERY TIME YOU RECALL A MEMORY OR LEARN SOMETHING NEW, YOUR BRAIN PHYSICALLY REWIRES ITSELF. THIS DIVINE ENGINEERING SURPASSES ANY SUPERCOMPUTER EVER BUILT - A TESTAMENT TO GOD'S EXTRAORDINARY CRAFTSMANSHIP IN CREATING YOU.",
+        "verse": "Isaiah 55:9 - As the heavens are higher than the earth, so are my ways higher than your ways and my thoughts than your thoughts.",
+        "cellsPerMinute": 300000000000
+    },
+    {
+        "fact": "Your heart will beat approximately 115,000 times today, pumping life-giving blood through 60,000 miles of blood vessels.",
+        "details": "THE INCREDIBLE JOURNEY OF YOUR BLOOD VESSELS, IF LAID END TO END, WOULD CIRCLE THE EARTH TWICE! EVERY SECOND, 2 MILLION NEW BLOOD CELLS ARE BORN IN YOUR BONE MARROW, EACH ONE PRECISELY CRAFTED FOR ITS LIFE-GIVING MISSION. YOUR HEART, NO LARGER THAN YOUR FIST, WILL PUMP ABOUT 2,000 GALLONS OF BLOOD TODAY - ENOUGH TO FILL A SMALL SWIMMING POOL. THIS MIRACULOUS SYSTEM WORKS TIRELESSLY, DAY AND NIGHT, FROM YOUR FIRST MOMENT TO YOUR LAST - A PERFECT EXAMPLE OF GOD'S INTRICATE AND LOVING DESIGN.",
+        "verse": "Jeremiah 1:5 - Before I formed you in the womb I knew you, before you were born I set you apart.",
+        "cellsPerMinute": 300000000000
+    }
+]
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -84,7 +98,16 @@ class PostReply(db.Model):
 
 @app.route('/api/fact', methods=['GET'])
 def get_fact():
-    return jsonify(facts)
+    try:
+        # Get today's date and use it to select a fact
+        today = datetime.now().date()
+        # Use the day of the year to rotate through facts
+        fact_index = (today.timetuple().tm_yday - 1) % len(facts)
+        logger.debug(f'Serving fact index {fact_index} for date {today}')
+        return jsonify(facts[fact_index])
+    except Exception as e:
+        logger.error(f"Error in get_fact: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/register', methods=['POST'])
 def register():
