@@ -362,11 +362,11 @@
         <div class="content">
             <div class="miracle-section">
                 <h2>Today's Miracle</h2>
-                <p id="fact"></p>
+                <p id="todaysMiracle">Loading today's miracle...</p>
                 <p id="fact-details"></p>
                 <div class="verse-section">
-                    <h3>Bible Verse</h3>
-                    <p id="verse"></p>
+                    <h3>The Divine Connection</h3>
+                    <p id="bibleVerse">Loading Bible verse...</p>
                 </div>
             </div>
 
@@ -395,30 +395,51 @@
     <script>
         const API_URL = 'https://bestill-app.onrender.com';
 
+        // Fetch and display the daily fact
+        async function fetchDailyFact() {
+            try {
+                const response = await fetch(`${API_URL}/api/fact`);
+                const data = await response.json();
+                
+                // Update Today's Miracle
+                document.getElementById('todaysMiracle').textContent = data.fact;
+                
+                // Update Bible Verse
+                document.getElementById('bibleVerse').textContent = data.verse;
+            } catch (error) {
+                console.error('Error fetching daily fact:', error);
+            }
+        }
+
         async function loadDiscussions() {
             try {
                 const response = await fetch(`${API_URL}/api/discussions`);
                 const discussions = await response.json();
                 
                 const container = document.getElementById('discussions-container');
-                container.innerHTML = discussions.map(discussion => `
-                    <div class="discussion-card">
-                        <div class="discussion-content">${discussion.content}</div>
-                        <div class="discussion-meta">
-                            <span class="discussion-author">${discussion.author}</span>
-                            <span class="discussion-timestamp">${new Date(discussion.timestamp).toLocaleString()}</span>
-                        </div>
-                    </div>
-                `).join('');
+                container.innerHTML = '';
+                
+                discussions.forEach(discussion => {
+                    const discussionElement = createDiscussionElement(discussion);
+                    container.appendChild(discussionElement);
+                });
             } catch (error) {
                 console.error('Error loading discussions:', error);
             }
         }
 
-        // Load discussions when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDiscussions();
-        });
+        function createDiscussionElement(discussion) {
+            const div = document.createElement('div');
+            div.className = 'discussion';
+            div.innerHTML = `
+                <div class="discussion-content">${discussion.content}</div>
+                <div class="discussion-meta">
+                    <span class="discussion-author">Posted by ${discussion.author}</span>
+                    <span class="discussion-time">${new Date(discussion.timestamp).toLocaleString()}</span>
+                </div>
+            `;
+            return div;
+        }
 
         // Handle form submission
         document.getElementById('discussion-form').addEventListener('submit', async (e) => {
@@ -442,13 +463,15 @@
                 if (response.ok) {
                     document.getElementById('discussion-input').value = '';
                     loadDiscussions();
-                } else {
-                    console.error('Failed to create discussion:', await response.text());
                 }
             } catch (error) {
                 console.error('Error creating discussion:', error);
             }
         });
+
+        // Initial loads
+        fetchDailyFact();
+        loadDiscussions();
     </script>
 </body>
 </html>
