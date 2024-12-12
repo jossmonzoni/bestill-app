@@ -94,7 +94,7 @@
             font-weight: 500;
         }
 
-        .comment-form {
+        .post-form {
             background-color: #333333;
             border-radius: 15px;
             padding: 1.5rem;
@@ -102,7 +102,7 @@
             box-shadow: var(--card-shadow);
         }
 
-        .comment-input {
+        .post-input {
             width: 100%;
             background-color: #000000;
             border: 1px solid var(--primary-color);
@@ -116,7 +116,7 @@
             font-family: 'Inter', sans-serif;
         }
 
-        .comment-input:focus {
+        .post-input:focus {
             outline: none;
             border-color: #ff5e2b;
         }
@@ -141,7 +141,7 @@
             margin-top: 2rem;
         }
 
-        .comment {
+        .post {
             background-color: #333333;
             border-radius: 15px;
             padding: 1.5rem;
@@ -152,11 +152,11 @@
             width: 100%;
         }
 
-        .comment:hover {
+        .post:hover {
             background-color: #444444;
         }
 
-        .comment-header {
+        .post-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 0.5rem;
@@ -164,7 +164,7 @@
             font-weight: 600;
         }
 
-        .comment-text {
+        .post-content {
             color: white;
             line-height: 1.6;
             margin-bottom: 1rem;
@@ -175,7 +175,7 @@
             width: 100%;
         }
 
-        .comment-actions {
+        .post-actions {
             display: flex;
             gap: 1rem;
             margin-top: 0.5rem;
@@ -360,22 +360,22 @@
 
     <div class="discussion-container">
         <div class="content">
-            <div class="miracle-section">
+            <div class="miracle-card">
                 <h2>Today's Miracle</h2>
                 <p id="todaysMiracle">Loading today's miracle...</p>
-                <p id="fact-details"></p>
-                <div class="verse-section">
-                    <h3>The Divine Connection</h3>
-                    <p id="bibleVerse">Loading Bible verse...</p>
-                </div>
+            </div>
+            
+            <div class="verse-card">
+                <h2>The Divine Connection</h2>
+                <p id="bibleVerse">Loading Bible verse...</p>
             </div>
 
-            <div id="discussions-container"></div>
-
-            <form id="discussion-form" class="comment-form">
-                <textarea id="discussion-input" class="comment-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
+            <form id="discussion-form" class="post-form">
+                <textarea id="discussion-input" class="post-input" placeholder="Share your thoughts about today's miracle and verse..."></textarea>
                 <button type="submit" class="submit-button">Share Thoughts</button>
             </form>
+
+            <div id="discussions-container"></div>
         </div>
     </div>
 
@@ -438,12 +438,12 @@
 
         function createDiscussionElement(discussion) {
             const div = document.createElement('div');
-            div.className = 'discussion';
+            div.className = 'post';
             div.innerHTML = `
-                <div class="discussion-content">${discussion.content}</div>
-                <div class="discussion-meta">
-                    <span class="discussion-author">Posted by ${discussion.author}</span>
-                    <span class="discussion-time">${new Date(discussion.timestamp).toLocaleString()}</span>
+                <div class="post-content">${discussion.content}</div>
+                <div class="post-meta">
+                    <span class="post-author">Posted by ${discussion.author}</span>
+                    <span class="post-time">${new Date(discussion.timestamp).toLocaleString()}</span>
                 </div>
             `;
             return div;
