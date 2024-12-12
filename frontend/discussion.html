@@ -393,13 +393,17 @@
     </nav>
 
     <script>
-        const API_URL = 'https://bestill-app.onrender.com';
+        const API_URL = 'https://bestill-backend.onrender.com';
 
         // Fetch and display the daily fact
         async function fetchDailyFact() {
             try {
                 const response = await fetch(`${API_URL}/api/fact`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch daily fact');
+                }
                 const data = await response.json();
+                console.log('Fetched fact:', data); // Debug log
                 
                 // Update Today's Miracle
                 document.getElementById('todaysMiracle').textContent = data.fact;
@@ -414,7 +418,11 @@
         async function loadDiscussions() {
             try {
                 const response = await fetch(`${API_URL}/api/discussions`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch discussions');
+                }
                 const discussions = await response.json();
+                console.log('Fetched discussions:', discussions); // Debug log
                 
                 const container = document.getElementById('discussions-container');
                 container.innerHTML = '';
@@ -445,6 +453,7 @@
         document.getElementById('discussion-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const content = document.getElementById('discussion-input').value.trim();
+            console.log('Submitting content:', content); // Debug log
             
             if (!content) return;
             
@@ -452,7 +461,8 @@
                 const response = await fetch(`${API_URL}/api/discussions`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         content,
@@ -460,18 +470,24 @@
                     })
                 });
                 
-                if (response.ok) {
-                    document.getElementById('discussion-input').value = '';
-                    loadDiscussions();
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to create discussion: ${errorText}`);
                 }
+                
+                document.getElementById('discussion-input').value = '';
+                await loadDiscussions();
             } catch (error) {
                 console.error('Error creating discussion:', error);
             }
         });
 
         // Initial loads
-        fetchDailyFact();
-        loadDiscussions();
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, fetching data...'); // Debug log
+            fetchDailyFact();
+            loadDiscussions();
+        });
     </script>
 </body>
 </html>
