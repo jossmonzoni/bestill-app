@@ -51,9 +51,61 @@
         }
 
         .discussion-container {
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
+            margin-top: 20px;
+            padding: 15px;
+        }
+
+        .discussion-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .discussion-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .discussion-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .like-button, .reply-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .like-button:hover, .reply-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .like-count {
+            margin-left: 5px;
+        }
+
+        .replies-container {
+            margin-left: 20px;
+            margin-top: 10px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            padding-left: 15px;
+        }
+
+        .reply-form {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .reply-form.active {
+            display: block;
         }
 
         .miracle-card, .verse-card {
@@ -395,132 +447,180 @@
 
     <script>
         const API_URL = 'https://bestill-backend.onrender.com';
+        let userName = localStorage.getItem('userName') || '';
 
-        // Fetch and display the daily fact
-        async function fetchDailyFact() {
-            try {
-                const response = await fetch(`${API_URL}/api/fact`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch daily fact');
-                }
-                const data = await response.json();
-                console.log('Fetched fact:', data); // Debug log
-                
-                // Update Today's Miracle
-                document.getElementById('todaysMiracle').textContent = data.fact;
-                
-                // Update Bible Verse
-                document.getElementById('bibleVerse').textContent = data.verse;
-            } catch (error) {
-                console.error('Error fetching daily fact:', error);
-            }
-        }
-
-        async function loadDiscussions() {
-            try {
-                const response = await fetch(`${API_URL}/api/discussions`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch discussions');
-                }
-                const discussions = await response.json();
-                console.log('Fetched discussions:', discussions); // Debug log
-                
-                const container = document.getElementById('discussions-container');
-                container.innerHTML = '';
-                
-                discussions.forEach(discussion => {
-                    const discussionElement = createDiscussionElement(discussion);
-                    container.appendChild(discussionElement);
-                });
-            } catch (error) {
-                console.error('Error loading discussions:', error);
-            }
-        }
-
-        function getTimeAgo(timestamp) {
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
             const now = new Date();
-            const postDate = new Date(timestamp);
-            const diffInSeconds = Math.floor((now - postDate) / 1000);
-            
-            if (diffInSeconds < 60) {
-                return 'just now';
-            }
-            
-            const diffInMinutes = Math.floor(diffInSeconds / 60);
-            if (diffInMinutes < 60) {
-                return `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
-            }
-            
-            const diffInHours = Math.floor(diffInMinutes / 60);
-            if (diffInHours < 24) {
-                return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
-            }
-            
-            const diffInDays = Math.floor(diffInHours / 24);
-            if (diffInDays < 30) {
-                return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
-            }
-            
-            const diffInMonths = Math.floor(diffInDays / 30);
-            if (diffInMonths < 12) {
-                return `${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
-            }
-            
-            const diffInYears = Math.floor(diffInMonths / 12);
-            return `${diffInYears} ${diffInYears === 1 ? 'year' : 'years'} ago`;
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+            return date.toLocaleDateString();
         }
 
         function createDiscussionElement(discussion) {
             const div = document.createElement('div');
-            div.className = 'post';
+            div.className = 'discussion-item';
             div.innerHTML = `
-                <div class="post-content">${discussion.content}</div>
-                <div class="post-meta">
-                    <span>Posted by ${discussion.author} ${getTimeAgo(discussion.timestamp)}</span>
+                <div class="discussion-header">
+                    <strong>${discussion.name}</strong>
+                    <span>${formatTimestamp(discussion.timestamp)}</span>
+                </div>
+                <div class="discussion-content">${discussion.content}</div>
+                <div class="discussion-actions">
+                    <button class="like-button" onclick="likeDiscussion(${discussion.id})">
+                        ❤️ <span class="like-count">${discussion.likes}</span>
+                    </button>
+                    <button class="reply-button" onclick="toggleReplyForm(${discussion.id})">
+                        Reply
+                    </button>
+                </div>
+                <div class="reply-form" id="reply-form-${discussion.id}">
+                    <form onsubmit="submitReply(event, ${discussion.id})">
+                        <input type="text" name="content" placeholder="Write a reply..." required>
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
+                <div class="replies-container" id="replies-${discussion.id}">
+                    ${discussion.replies.map(reply => `
+                        <div class="discussion-item">
+                            <div class="discussion-header">
+                                <strong>${reply.name}</strong>
+                                <span>${formatTimestamp(reply.timestamp)}</span>
+                            </div>
+                            <div class="discussion-content">${reply.content}</div>
+                            <div class="discussion-actions">
+                                <button class="like-button" onclick="likeReply(${reply.id})">
+                                    ❤️ <span class="like-count">${reply.likes}</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
             return div;
         }
 
-        // Handle form submission
-        document.getElementById('discussion-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const content = document.getElementById('discussion-input').value.trim();
-            console.log('Submitting content:', content); // Debug log
-            
-            if (!content) return;
-            
+        async function loadDiscussions() {
+            try {
+                const response = await fetch(`${API_URL}/api/discussions`);
+                const discussions = await response.json();
+                const container = document.getElementById('discussions-container');
+                container.innerHTML = '';
+                discussions.forEach(discussion => {
+                    container.appendChild(createDiscussionElement(discussion));
+                });
+                updateDiscussionCount(discussions.length);
+            } catch (error) {
+                console.error('Error loading discussions:', error);
+            }
+        }
+
+        async function submitDiscussion(event) {
+            event.preventDefault();
+            if (!userName) {
+                userName = prompt('Please enter your name:');
+                if (!userName) return;
+                localStorage.setItem('userName', userName);
+            }
+
+            const form = event.target;
+            const content = form.content.value;
+
             try {
                 const response = await fetch(`${API_URL}/api/discussions`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        content,
-                        author: 'Anonymous'
-                    })
+                        name: userName,
+                        content: content
+                    }),
                 });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Failed to create discussion: ${errorText}`);
-                }
-                
-                document.getElementById('discussion-input').value = '';
-                await loadDiscussions();
-            } catch (error) {
-                console.error('Error creating discussion:', error);
-            }
-        });
 
-        // Initial loads
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Page loaded, fetching data...'); // Debug log
-            fetchDailyFact();
-            loadDiscussions();
-        });
+                if (response.ok) {
+                    form.reset();
+                    loadDiscussions();
+                }
+            } catch (error) {
+                console.error('Error submitting discussion:', error);
+            }
+        }
+
+        async function likeDiscussion(discussionId) {
+            try {
+                const response = await fetch(`${API_URL}/api/discussions/${discussionId}/like`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                const likeCount = document.querySelector(`#discussions-container .discussion-item[data-id="${discussionId}"] .like-count`);
+                if (likeCount) {
+                    likeCount.textContent = data.likes;
+                }
+            } catch (error) {
+                console.error('Error liking discussion:', error);
+            }
+        }
+
+        async function likeReply(replyId) {
+            try {
+                const response = await fetch(`${API_URL}/api/discussions/replies/${replyId}/like`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                const likeCount = document.querySelector(`#discussions-container .discussion-item[data-reply-id="${replyId}"] .like-count`);
+                if (likeCount) {
+                    likeCount.textContent = data.likes;
+                }
+            } catch (error) {
+                console.error('Error liking reply:', error);
+            }
+        }
+
+        function toggleReplyForm(discussionId) {
+            const form = document.getElementById(`reply-form-${discussionId}`);
+            form.classList.toggle('active');
+        }
+
+        async function submitReply(event, discussionId) {
+            event.preventDefault();
+            if (!userName) {
+                userName = prompt('Please enter your name:');
+                if (!userName) return;
+                localStorage.setItem('userName', userName);
+            }
+
+            const form = event.target;
+            const content = form.content.value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/discussions/${discussionId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: userName,
+                        content: content
+                    }),
+                });
+
+                if (response.ok) {
+                    form.reset();
+                    toggleReplyForm(discussionId);
+                    loadDiscussions();
+                }
+            } catch (error) {
+                console.error('Error submitting reply:', error);
+            }
+        }
+
+        // Load discussions when page loads
+        document.addEventListener('DOMContentLoaded', loadDiscussions);
     </script>
 </body>
 </html>

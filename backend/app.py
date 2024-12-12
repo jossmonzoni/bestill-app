@@ -59,9 +59,19 @@ class User(db.Model):
 
 class Prayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(500), nullable=False)
-    author = db.Column(db.String(80), nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    name = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    likes = db.Column(db.Integer, default=0)
+    replies = db.relationship('PrayerReply', backref='prayer', lazy=True)
+
+class PrayerReply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    prayer_id = db.Column(db.Integer, db.ForeignKey('prayer.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    likes = db.Column(db.Integer, default=0)
 
 class Praise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -71,9 +81,19 @@ class Praise(db.Model):
 
 class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(500), nullable=False)
-    author = db.Column(db.String(80), nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    name = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    likes = db.Column(db.Integer, default=0)
+    replies = db.relationship('DiscussionReply', backref='discussion', lazy=True)
+
+class DiscussionReply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    discussion_id = db.Column(db.Integer, db.ForeignKey('discussion.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    likes = db.Column(db.Integer, default=0)
 
 @app.route('/api/fact', methods=['GET'])
 def get_fact():
@@ -277,32 +297,105 @@ def create_reply(post_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/prayers', methods=['GET', 'POST'])
-def handle_prayers():
-    if request.method == 'GET':
-        prayers = Prayer.query.order_by(Prayer.timestamp.desc()).all()
-        return jsonify([{
+@app.route('/api/prayers', methods=['GET'])
+def get_prayers():
+    prayers = Prayer.query.order_by(Prayer.timestamp.desc()).all()
+    prayers_list = []
+    for prayer in prayers:
+        replies = [{'id': r.id, 'name': r.name, 'content': r.content, 
+                   'timestamp': r.timestamp.isoformat(), 'likes': r.likes} 
+                  for r in prayer.replies]
+        prayers_list.append({
             'id': prayer.id,
+            'name': prayer.name,
             'content': prayer.content,
-            'author': prayer.author,
-            'timestamp': prayer.timestamp.isoformat()
-        } for prayer in prayers])
-    
-    elif request.method == 'POST':
-        data = request.get_json()
-        new_prayer = Prayer(
-            content=data['content'],
-            author=data['author'],
-            timestamp=datetime.utcnow()
-        )
-        db.session.add(new_prayer)
-        db.session.commit()
-        return jsonify({
-            'id': new_prayer.id,
-            'content': new_prayer.content,
-            'author': new_prayer.author,
-            'timestamp': new_prayer.timestamp.isoformat()
-        }), 201
+            'timestamp': prayer.timestamp.isoformat(),
+            'likes': prayer.likes,
+            'replies': replies
+        })
+    return jsonify(prayers_list)
+
+@app.route('/api/prayers/<int:prayer_id>/reply', methods=['POST'])
+def add_prayer_reply(prayer_id):
+    data = request.get_json()
+    reply = PrayerReply(
+        prayer_id=prayer_id,
+        name=data['name'],
+        content=data['content']
+    )
+    db.session.add(reply)
+    db.session.commit()
+    return jsonify({
+        'id': reply.id,
+        'name': reply.name,
+        'content': reply.content,
+        'timestamp': reply.timestamp.isoformat(),
+        'likes': reply.likes
+    })
+
+@app.route('/api/prayers/<int:prayer_id>/like', methods=['POST'])
+def like_prayer(prayer_id):
+    prayer = Prayer.query.get_or_404(prayer_id)
+    prayer.likes += 1
+    db.session.commit()
+    return jsonify({'likes': prayer.likes})
+
+@app.route('/api/prayers/replies/<int:reply_id>/like', methods=['POST'])
+def like_prayer_reply(reply_id):
+    reply = PrayerReply.query.get_or_404(reply_id)
+    reply.likes += 1
+    db.session.commit()
+    return jsonify({'likes': reply.likes})
+
+@app.route('/api/discussions', methods=['GET'])
+def get_discussions():
+    discussions = Discussion.query.order_by(Discussion.timestamp.desc()).all()
+    discussions_list = []
+    for discussion in discussions:
+        replies = [{'id': r.id, 'name': r.name, 'content': r.content, 
+                   'timestamp': r.timestamp.isoformat(), 'likes': r.likes} 
+                  for r in discussion.replies]
+        discussions_list.append({
+            'id': discussion.id,
+            'name': discussion.name,
+            'content': discussion.content,
+            'timestamp': discussion.timestamp.isoformat(),
+            'likes': discussion.likes,
+            'replies': replies
+        })
+    return jsonify(discussions_list)
+
+@app.route('/api/discussions/<int:discussion_id>/reply', methods=['POST'])
+def add_discussion_reply(discussion_id):
+    data = request.get_json()
+    reply = DiscussionReply(
+        discussion_id=discussion_id,
+        name=data['name'],
+        content=data['content']
+    )
+    db.session.add(reply)
+    db.session.commit()
+    return jsonify({
+        'id': reply.id,
+        'name': reply.name,
+        'content': reply.content,
+        'timestamp': reply.timestamp.isoformat(),
+        'likes': reply.likes
+    })
+
+@app.route('/api/discussions/<int:discussion_id>/like', methods=['POST'])
+def like_discussion(discussion_id):
+    discussion = Discussion.query.get_or_404(discussion_id)
+    discussion.likes += 1
+    db.session.commit()
+    return jsonify({'likes': discussion.likes})
+
+@app.route('/api/discussions/replies/<int:reply_id>/like', methods=['POST'])
+def like_discussion_reply(reply_id):
+    reply = DiscussionReply.query.get_or_404(reply_id)
+    reply.likes += 1
+    db.session.commit()
+    return jsonify({'likes': reply.likes})
 
 @app.route('/api/praises', methods=['GET', 'POST'])
 def handle_praises():
@@ -337,25 +430,30 @@ def handle_discussions():
         discussions = Discussion.query.order_by(Discussion.timestamp.desc()).all()
         return jsonify([{
             'id': discussion.id,
+            'name': discussion.name,
             'content': discussion.content,
-            'author': discussion.author,
-            'timestamp': discussion.timestamp.isoformat()
+            'timestamp': discussion.timestamp.isoformat(),
+            'likes': discussion.likes,
+            'replies': [{'id': r.id, 'name': r.name, 'content': r.content, 
+                        'timestamp': r.timestamp.isoformat(), 'likes': r.likes} 
+                       for r in discussion.replies]
         } for discussion in discussions])
     
     elif request.method == 'POST':
         data = request.get_json()
         new_discussion = Discussion(
+            name=data['name'],
             content=data['content'],
-            author=data['author'],
             timestamp=datetime.utcnow()
         )
         db.session.add(new_discussion)
         db.session.commit()
         return jsonify({
             'id': new_discussion.id,
+            'name': new_discussion.name,
             'content': new_discussion.content,
-            'author': new_discussion.author,
-            'timestamp': new_discussion.timestamp.isoformat()
+            'timestamp': new_discussion.timestamp.isoformat(),
+            'likes': new_discussion.likes
         }), 201
 
 @app.route('/')

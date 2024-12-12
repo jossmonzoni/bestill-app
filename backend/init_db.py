@@ -1,4 +1,4 @@
-from app import db, Prayer, Praise, User, Discussion, app
+from app import db, Prayer, Praise, User, Discussion, DiscussionReply, PrayerReply, app
 import datetime
 
 with app.app_context():
