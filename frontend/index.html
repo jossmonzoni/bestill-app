@@ -176,7 +176,12 @@
     <div class="card">
         <h2 id="miracleBeyond">The Miracle Beyond</h2>
         <p id="fact-details" style="font-size: 1.1rem; line-height: 1.6;">YOU'VE JUST CREATED MORE CELLS THAN THERE ARE STARS IN 1,000 GALAXIES COMBINED. EACH OF THESE CELLS IS A MASTERPIECE, CONTAINING DNA SO COMPLEX IT WOULD TAKE 1,000 BOOKS TO WRITE DOWN THE CODE FOR JUST ONE CELL. THIS EXTRAORDINARY PROCESS CONTINUES EVERY SINGLE MINUTE, WHETHER YOU'RE AWAKE OR DEEP IN SLEEP. YOUR BODY IS RUNNING THE MOST SOPHISTICATED FACTORY IN THE UNIVERSE, AND IT NEVER STOPS. THIS LEVEL OF PRECISION AND COMPLEXITY COULD ONLY COME FROM A DIVINE BLUEPRINT - YOU ARE A LIVING TESTAMENT TO GOD'S INCREDIBLE DESIGN.</p>
-        <p id="bible-verse" style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-top: 1rem;">PSALM 139:14 - I PRAISE YOU BECAUSE I AM FEARFULLY AND WONDERFULLY MADE; YOUR WORKS ARE WONDERFUL, I KNOW THAT FULL WELL.</p>
+    </div>
+
+    <!-- Bible Verse Card -->
+    <div class="card">
+        <h2 id="bibleVerse">The Divine Connection</h2>
+        <p id="bible-verse" style="font-style: italic; font-size: 1.1rem; line-height: 1.6;">PSALM 139:14 - I PRAISE YOU BECAUSE I AM FEARFULLY AND WONDERFULLY MADE; YOUR WORKS ARE WONDERFUL, I KNOW THAT FULL WELL.</p>
     </div>
 
     <!-- Discussion Card -->
@@ -260,6 +265,14 @@
                 // Start the cell count animation
                 cellsPerMinute = data.cellsPerMinute;
                 updateCellCount();
+                
+                // Update card structure
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    card.style.backgroundImage = `url(${data.images[index]})`;
+                    card.style.backgroundSize = 'cover';
+                    card.style.backgroundPosition = 'center';
+                });
             } catch (error) {
                 console.error('Error fetching daily fact:', error);
             }
