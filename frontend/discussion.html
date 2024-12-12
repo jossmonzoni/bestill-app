@@ -289,6 +289,68 @@
             margin-left: 0.5rem;
             font-weight: 600;
         }
+
+        .discussion-card {
+            background-color: #333333;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .discussion-content {
+            color: var(--text-color);
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .discussion-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .miracle-section {
+            background-color: #333333;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .miracle-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .verse-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #444;
+        }
+
+        .verse-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        #fact, #verse {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        #fact-details {
+            color: #888;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -297,15 +359,15 @@
     </header>
 
     <div class="discussion-container">
-        <div class="container">
-            <div class="miracle-card">
+        <div class="content">
+            <div class="miracle-section">
                 <h2>Today's Miracle</h2>
-                <p id="todaysMiracle">Loading today's miracle...</p>
-            </div>
-            
-            <div class="verse-card">
-                <h2>The Divine Connection</h2>
-                <p id="bibleVerse">Loading Bible verse...</p>
+                <p id="fact"></p>
+                <p id="fact-details"></p>
+                <div class="verse-section">
+                    <h3>Bible Verse</h3>
+                    <p id="verse"></p>
+                </div>
             </div>
 
             <div id="discussions-container"></div>
@@ -331,23 +393,7 @@
     </nav>
 
     <script>
-        const API_URL = 'https://bestill-backend.onrender.com';
-
-        // Fetch and display the daily fact
-        async function fetchDailyFact() {
-            try {
-                const response = await fetch(`${API_URL}/api/fact`);
-                const data = await response.json();
-                
-                // Update Today's Miracle
-                document.getElementById('todaysMiracle').textContent = data.fact;
-                
-                // Update Bible Verse
-                document.getElementById('bibleVerse').textContent = data.verse;
-            } catch (error) {
-                console.error('Error fetching daily fact:', error);
-            }
-        }
+        const API_URL = 'https://bestill-app.onrender.com';
 
         async function loadDiscussions() {
             try {
@@ -355,36 +401,24 @@
                 const discussions = await response.json();
                 
                 const container = document.getElementById('discussions-container');
-                container.innerHTML = '';
-                
-                discussions.forEach(discussion => {
-                    const discussionElement = createDiscussionElement(discussion);
-                    container.appendChild(discussionElement);
-                });
-                
-                updateTimestamps();
+                container.innerHTML = discussions.map(discussion => `
+                    <div class="discussion-card">
+                        <div class="discussion-content">${discussion.content}</div>
+                        <div class="discussion-meta">
+                            <span class="discussion-author">${discussion.author}</span>
+                            <span class="discussion-timestamp">${new Date(discussion.timestamp).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('');
             } catch (error) {
                 console.error('Error loading discussions:', error);
             }
         }
 
-        async function updatePostCounts() {
-            try {
-                // Get discussion count
-                const discussionResponse = await fetch(`${API_URL}/api/discussions`);
-                const discussions = await discussionResponse.json();
-                document.getElementById('discussion-count').textContent = discussions.length;
-
-                // Get prayers count
-                const prayersResponse = await fetch(`${API_URL}/api/prayers`);
-                const prayers = await prayersResponse.json();
-                const praisesResponse = await fetch(`${API_URL}/api/praises`);
-                const praises = await praisesResponse.json();
-                document.getElementById('prayers-count').textContent = prayers.length + praises.length;
-            } catch (error) {
-                console.error('Error fetching post counts:', error);
-            }
-        }
+        // Load discussions when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDiscussions();
+        });
 
         // Handle form submission
         document.getElementById('discussion-form').addEventListener('submit', async (e) => {
@@ -408,34 +442,13 @@
                 if (response.ok) {
                     document.getElementById('discussion-input').value = '';
                     loadDiscussions();
+                } else {
+                    console.error('Failed to create discussion:', await response.text());
                 }
             } catch (error) {
                 console.error('Error creating discussion:', error);
             }
         });
-
-        function createDiscussionElement(discussion) {
-            const div = document.createElement('div');
-            div.className = 'discussion';
-            div.innerHTML = `
-                <div class="discussion-content">${discussion.content}</div>
-                <div class="discussion-meta">
-                    <span class="discussion-author">Posted by ${discussion.author}</span>
-                    <span class="discussion-time" data-timestamp="${discussion.timestamp}">${getTimeAgo(discussion.timestamp)}</span>
-                </div>
-            `;
-            return div;
-        }
-
-        // Initial loads
-        fetchDailyFact();
-        loadDiscussions();
-        updatePostCounts();
-
-        // Update timestamps every minute
-        setInterval(updateTimestamps, 60000);
-        // Update counts every minute
-        setInterval(updatePostCounts, 60000);
     </script>
 </body>
 </html>
