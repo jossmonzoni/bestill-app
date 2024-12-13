@@ -135,99 +135,87 @@
         }
 
         .post {
-            background-color: #333333;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            width: 100%;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .post:hover {
-            background-color: #444444;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
         .post-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
-            color: #ff5e2b;
-            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
         }
 
         .post-content {
-            color: white;
+            margin-bottom: 10px;
             line-height: 1.6;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            font-weight: 500;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            width: 100%;
         }
 
-        .post-footer {
+        .post-actions {
             display: flex;
-            gap: 1rem;
-            margin-top: 0.5rem;
+            gap: 15px;
+            margin-top: 10px;
         }
 
-        .action-button {
+        .like-button, .reply-button {
             background: none;
             border: none;
-            color: #ff5e2b;
+            color: var(--text-color);
             cursor: pointer;
-            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
+            gap: 5px;
         }
 
-        .action-button:hover {
-            opacity: 0.8;
+        .like-button:hover, .reply-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
-        .action-button.liked {
-            color: #ff3366;
+        .like-count {
+            font-size: 0.9rem;
         }
 
-        .replies {
-            margin-left: 2rem;
-            margin-top: 1rem;
+        .replies-container {
+            margin-left: 20px;
+            margin-top: 10px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            padding-left: 15px;
         }
 
         .reply-form {
-            margin-top: 1rem;
+            margin-top: 10px;
             display: none;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
         }
 
         .reply-form.active {
             display: block;
         }
 
-        .reply-input {
+        .reply-form input {
             width: 100%;
-            background-color: #000000;
-            border: 1px solid #ff5e2b;
-            border-radius: 8px;
-            padding: 1rem;
-            color: white;
-            margin-bottom: 1rem;
-            font-family: 'Inter', sans-serif;
-            resize: vertical;
-            min-height: 80px;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            margin-bottom: 10px;
         }
 
-        .reply {
-            background-color: #444444;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
+        .reply-form button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         .bottom-nav {
@@ -267,64 +255,6 @@
             font-size: 0.8rem;
             margin-left: 0.5rem;
             font-weight: 600;
-        }
-
-        .prayer-container {
-            margin-top: 20px;
-            padding: 15px;
-        }
-
-        .prayer-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .prayer-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .prayer-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .like-button, .reply-button {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .like-button:hover, .reply-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .like-count {
-            margin-left: 5px;
-        }
-
-        .replies-container {
-            margin-left: 20px;
-            margin-top: 10px;
-            border-left: 2px solid rgba(255, 255, 255, 0.1);
-            padding-left: 15px;
-        }
-
-        .reply-form {
-            margin-top: 10px;
-            display: none;
-        }
-
-        .reply-form.active {
-            display: block;
         }
 
         @media (max-width: 768px) {
@@ -380,6 +310,51 @@
         const API_URL = 'https://bestill-backend.onrender.com';
         let userName = localStorage.getItem('userName') || '';
 
+        function createPrayerElement(prayer) {
+            const div = document.createElement('div');
+            div.className = 'post';
+            div.dataset.id = prayer.id;
+            
+            div.innerHTML = `
+                <div class="post-header">
+                    <strong>${prayer.name || 'Anonymous'}</strong>
+                    <span>${formatTimestamp(prayer.timestamp)}</span>
+                </div>
+                <div class="post-content">${prayer.content}</div>
+                <div class="post-actions">
+                    <button class="like-button" onclick="likePrayer(${prayer.id})">
+                        ❤️ <span class="like-count">${prayer.likes || 0}</span>
+                    </button>
+                    <button class="reply-button" onclick="toggleReplyForm(${prayer.id})">
+                        💬 Reply
+                    </button>
+                </div>
+                <div class="reply-form" id="reply-form-${prayer.id}">
+                    <form onsubmit="submitReply(event, ${prayer.id})">
+                        <input type="text" name="content" placeholder="Write a reply..." required>
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
+                <div class="replies-container" id="replies-${prayer.id}">
+                    ${(prayer.replies || []).map(reply => `
+                        <div class="post" data-reply-id="${reply.id}">
+                            <div class="post-header">
+                                <strong>${reply.name || 'Anonymous'}</strong>
+                                <span>${formatTimestamp(reply.timestamp)}</span>
+                            </div>
+                            <div class="post-content">${reply.content}</div>
+                            <div class="post-actions">
+                                <button class="like-button" onclick="likeReply(${reply.id})">
+                                    ❤️ <span class="like-count">${reply.likes || 0}</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            return div;
+        }
+
         function formatTimestamp(timestamp) {
             const date = new Date(timestamp);
             const now = new Date();
@@ -390,49 +365,6 @@
             if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
             if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
             return date.toLocaleDateString();
-        }
-
-        function createPrayerElement(prayer) {
-            const div = document.createElement('div');
-            div.className = 'prayer-item';
-            div.innerHTML = `
-                <div class="prayer-header">
-                    <strong>${prayer.name}</strong>
-                    <span>${formatTimestamp(prayer.timestamp)}</span>
-                </div>
-                <div class="prayer-content">${prayer.content}</div>
-                <div class="prayer-actions">
-                    <button class="like-button" onclick="likePrayer(${prayer.id})">
-                        ❤️ <span class="like-count">${prayer.likes}</span>
-                    </button>
-                    <button class="reply-button" onclick="toggleReplyForm(${prayer.id})">
-                        Reply
-                    </button>
-                </div>
-                <div class="reply-form" id="reply-form-${prayer.id}">
-                    <form onsubmit="submitReply(event, ${prayer.id})">
-                        <input type="text" name="content" placeholder="Write a reply..." required>
-                        <button type="submit">Send</button>
-                    </form>
-                </div>
-                <div class="replies-container" id="replies-${prayer.id}">
-                    ${prayer.replies.map(reply => `
-                        <div class="prayer-item">
-                            <div class="prayer-header">
-                                <strong>${reply.name}</strong>
-                                <span>${formatTimestamp(reply.timestamp)}</span>
-                            </div>
-                            <div class="prayer-content">${reply.content}</div>
-                            <div class="prayer-actions">
-                                <button class="like-button" onclick="likeReply(${reply.id})">
-                                    ❤️ <span class="like-count">${reply.likes}</span>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            return div;
         }
 
         async function loadPrayers() {
@@ -450,36 +382,9 @@
             }
         }
 
-        async function submitPrayer(event) {
-            event.preventDefault();
-            if (!userName) {
-                userName = prompt('Please enter your name:');
-                if (!userName) return;
-                localStorage.setItem('userName', userName);
-            }
-
-            const form = event.target;
-            const content = form.content.value;
-
-            try {
-                const response = await fetch(`${API_URL}/api/prayers`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: userName,
-                        content: content
-                    }),
-                });
-
-                if (response.ok) {
-                    form.reset();
-                    loadPrayers();
-                }
-            } catch (error) {
-                console.error('Error submitting prayer:', error);
-            }
+        function toggleReplyForm(prayerId) {
+            const form = document.getElementById(`reply-form-${prayerId}`);
+            form.classList.toggle('active');
         }
 
         async function likePrayer(prayerId) {
@@ -487,10 +392,12 @@
                 const response = await fetch(`${API_URL}/api/prayers/${prayerId}/like`, {
                     method: 'POST'
                 });
-                const data = await response.json();
-                const likeCount = document.querySelector(`#prayers-container .prayer-item[data-id="${prayerId}"] .like-count`);
-                if (likeCount) {
-                    likeCount.textContent = data.likes;
+                if (response.ok) {
+                    const data = await response.json();
+                    const likeCount = document.querySelector(`[data-id="${prayerId}"] .like-count`);
+                    if (likeCount) {
+                        likeCount.textContent = data.likes;
+                    }
                 }
             } catch (error) {
                 console.error('Error liking prayer:', error);
@@ -502,19 +409,16 @@
                 const response = await fetch(`${API_URL}/api/prayers/replies/${replyId}/like`, {
                     method: 'POST'
                 });
-                const data = await response.json();
-                const likeCount = document.querySelector(`#prayers-container .prayer-item[data-reply-id="${replyId}"] .like-count`);
-                if (likeCount) {
-                    likeCount.textContent = data.likes;
+                if (response.ok) {
+                    const data = await response.json();
+                    const likeCount = document.querySelector(`[data-reply-id="${replyId}"] .like-count`);
+                    if (likeCount) {
+                        likeCount.textContent = data.likes;
+                    }
                 }
             } catch (error) {
                 console.error('Error liking reply:', error);
             }
-        }
-
-        function toggleReplyForm(prayerId) {
-            const form = document.getElementById(`reply-form-${prayerId}`);
-            form.classList.toggle('active');
         }
 
         async function submitReply(event, prayerId) {
@@ -549,6 +453,38 @@
                 console.error('Error submitting reply:', error);
             }
         }
+
+        document.getElementById('post-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!userName) {
+                userName = prompt('Please enter your name:');
+                if (!userName) return;
+                localStorage.setItem('userName', userName);
+            }
+
+            const content = document.getElementById('post-input').value;
+            if (!content.trim()) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/prayers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: userName,
+                        content: content
+                    }),
+                });
+
+                if (response.ok) {
+                    document.getElementById('post-input').value = '';
+                    loadPrayers();
+                }
+            } catch (error) {
+                console.error('Error submitting prayer:', error);
+            }
+        });
 
         // Load prayers when page loads
         document.addEventListener('DOMContentLoaded', loadPrayers);
