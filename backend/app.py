@@ -76,8 +76,9 @@ class PrayerReply(db.Model):
 class Praise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(500), nullable=False)
-    author = db.Column(db.String(80), nullable=False)
+    name = db.Column(db.String(80), nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    likes = db.Column(db.Integer, default=0)
 
 class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -203,7 +204,7 @@ def create_post():
         return jsonify(response_data)
         
     except Exception as e:
-        logger.exception("Error creating post")
+        logger.error(f"Error creating post")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
@@ -317,35 +318,66 @@ def get_prayers():
 
 @app.route('/api/prayers/<int:prayer_id>/reply', methods=['POST'])
 def add_prayer_reply(prayer_id):
-    data = request.get_json()
-    reply = PrayerReply(
-        prayer_id=prayer_id,
-        name=data['name'],
-        content=data['content']
-    )
-    db.session.add(reply)
-    db.session.commit()
-    return jsonify({
-        'id': reply.id,
-        'name': reply.name,
-        'content': reply.content,
-        'timestamp': reply.timestamp.isoformat(),
-        'likes': reply.likes
-    })
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        content = data.get('content')
+        
+        if not name or not content:
+            return jsonify({'error': 'Name and content are required'}), 400
+            
+        prayer = Prayer.query.get(prayer_id)
+        if not prayer:
+            return jsonify({'error': 'Prayer not found'}), 404
+            
+        reply = PrayerReply(
+            prayer_id=prayer_id,
+            name=name,
+            content=content,
+            timestamp=datetime.utcnow(),
+            likes=0
+        )
+        
+        db.session.add(reply)
+        db.session.commit()
+        
+        return jsonify({
+            'id': reply.id,
+            'name': reply.name,
+            'content': reply.content,
+            'timestamp': reply.timestamp.isoformat(),
+            'likes': reply.likes
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/prayers/<int:prayer_id>/like', methods=['POST'])
 def like_prayer(prayer_id):
-    prayer = Prayer.query.get_or_404(prayer_id)
-    prayer.likes += 1
-    db.session.commit()
-    return jsonify({'likes': prayer.likes})
+    try:
+        prayer = Prayer.query.get(prayer_id)
+        if not prayer:
+            return jsonify({'error': 'Prayer not found'}), 404
+            
+        prayer.likes += 1
+        db.session.commit()
+        
+        return jsonify({'likes': prayer.likes}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/prayers/replies/<int:reply_id>/like', methods=['POST'])
 def like_prayer_reply(reply_id):
-    reply = PrayerReply.query.get_or_404(reply_id)
-    reply.likes += 1
-    db.session.commit()
-    return jsonify({'likes': reply.likes})
+    try:
+        reply = PrayerReply.query.get(reply_id)
+        if not reply:
+            return jsonify({'error': 'Reply not found'}), 404
+            
+        reply.likes += 1
+        db.session.commit()
+        
+        return jsonify({'likes': reply.likes}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/discussions', methods=['GET'])
 def get_discussions():
@@ -367,35 +399,66 @@ def get_discussions():
 
 @app.route('/api/discussions/<int:discussion_id>/reply', methods=['POST'])
 def add_discussion_reply(discussion_id):
-    data = request.get_json()
-    reply = DiscussionReply(
-        discussion_id=discussion_id,
-        name=data['name'],
-        content=data['content']
-    )
-    db.session.add(reply)
-    db.session.commit()
-    return jsonify({
-        'id': reply.id,
-        'name': reply.name,
-        'content': reply.content,
-        'timestamp': reply.timestamp.isoformat(),
-        'likes': reply.likes
-    })
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        content = data.get('content')
+        
+        if not name or not content:
+            return jsonify({'error': 'Name and content are required'}), 400
+            
+        discussion = Discussion.query.get(discussion_id)
+        if not discussion:
+            return jsonify({'error': 'Discussion not found'}), 404
+            
+        reply = DiscussionReply(
+            discussion_id=discussion_id,
+            name=name,
+            content=content,
+            timestamp=datetime.utcnow(),
+            likes=0
+        )
+        
+        db.session.add(reply)
+        db.session.commit()
+        
+        return jsonify({
+            'id': reply.id,
+            'name': reply.name,
+            'content': reply.content,
+            'timestamp': reply.timestamp.isoformat(),
+            'likes': reply.likes
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/discussions/<int:discussion_id>/like', methods=['POST'])
 def like_discussion(discussion_id):
-    discussion = Discussion.query.get_or_404(discussion_id)
-    discussion.likes += 1
-    db.session.commit()
-    return jsonify({'likes': discussion.likes})
+    try:
+        discussion = Discussion.query.get(discussion_id)
+        if not discussion:
+            return jsonify({'error': 'Discussion not found'}), 404
+            
+        discussion.likes += 1
+        db.session.commit()
+        
+        return jsonify({'likes': discussion.likes}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/discussions/replies/<int:reply_id>/like', methods=['POST'])
 def like_discussion_reply(reply_id):
-    reply = DiscussionReply.query.get_or_404(reply_id)
-    reply.likes += 1
-    db.session.commit()
-    return jsonify({'likes': reply.likes})
+    try:
+        reply = DiscussionReply.query.get(reply_id)
+        if not reply:
+            return jsonify({'error': 'Reply not found'}), 404
+            
+        reply.likes += 1
+        db.session.commit()
+        
+        return jsonify({'likes': reply.likes}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/praises', methods=['GET', 'POST'])
 def handle_praises():
@@ -404,24 +467,27 @@ def handle_praises():
         return jsonify([{
             'id': praise.id,
             'content': praise.content,
-            'author': praise.author,
-            'timestamp': praise.timestamp.isoformat()
+            'name': praise.name,
+            'timestamp': praise.timestamp.isoformat(),
+            'likes': praise.likes
         } for praise in praises])
     
     elif request.method == 'POST':
         data = request.get_json()
         new_praise = Praise(
             content=data['content'],
-            author=data['author'],
-            timestamp=datetime.utcnow()
+            name=data['name'],
+            timestamp=datetime.utcnow(),
+            likes=0
         )
         db.session.add(new_praise)
         db.session.commit()
         return jsonify({
             'id': new_praise.id,
             'content': new_praise.content,
-            'author': new_praise.author,
-            'timestamp': new_praise.timestamp.isoformat()
+            'name': new_praise.name,
+            'timestamp': new_praise.timestamp.isoformat(),
+            'likes': new_praise.likes
         }), 201
 
 @app.route('/api/discussions', methods=['GET', 'POST'])
