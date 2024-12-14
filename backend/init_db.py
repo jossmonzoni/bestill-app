@@ -1,7 +1,6 @@
 from app import db, Prayer, Praise, User, Discussion, DiscussionReply, PrayerReply, app
 import datetime
 
-# Test comment to verify changes are being saved
 with app.app_context():
     # Clear existing data
     db.drop_all()
@@ -40,22 +39,26 @@ with app.app_context():
         {
             "content": "Grateful for God's endless mercy! After months of searching, I've been blessed with a job that allows me to serve others.",
             "name": "James",
-            "timestamp": datetime.datetime.now()
+            "timestamp": datetime.datetime.now(),
+            "likes": 0
         },
         {
             "content": "Praising God for healing my mother's heart condition! The doctors are amazed by her recovery. Nothing is impossible with Him!",
             "name": "Emma",
-            "timestamp": datetime.datetime.now()
+            "timestamp": datetime.datetime.now(),
+            "likes": 0
         },
         {
             "content": "Thank you, Lord, for bringing peace to my troubled mind. Through prayer and faith, anxiety has been replaced with Your perfect peace.",
             "name": "Daniel",
-            "timestamp": datetime.datetime.now()
+            "timestamp": datetime.datetime.now(),
+            "likes": 0
         },
         {
             "content": "Celebrating one year of sobriety today! With God's strength and grace, transformation is possible. He makes all things new!",
             "name": "Grace",
-            "timestamp": datetime.datetime.now()
+            "timestamp": datetime.datetime.now(),
+            "likes": 0
         }
     ]
 
@@ -82,7 +85,7 @@ with app.app_context():
 
     # Add all praises to database
     for praise in praises:
-        new_praise = Praise(content=praise["content"], name=praise["name"], timestamp=praise["timestamp"])
+        new_praise = Praise(content=praise["content"], name=praise["name"], timestamp=praise["timestamp"], likes=praise.get("likes", 0))
         db.session.add(new_praise)
 
     # Add all discussions to database
